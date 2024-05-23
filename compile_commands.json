@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-Werror",
+      "-I./include",
+      "-o",
+      "build/main",
+      "src/main.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/main.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  }
+]

@@ -1,0 +1,16 @@
+;;; -*- lisp-data -*-
+((:name "Compile and run"
+        :command "make && ./build/main"
+        :type "compile"
+        :workdir nil
+        :environment nil)
+ (:name "Run"
+        :command "./build/main"
+        :type "compile"
+        :workdir nil
+        :environment nil)
+ (:name "Compile"
+        :command "make"
+        :type "compile"
+        :workdir nil
+        :environment nil))
