@@ -85,7 +85,6 @@ void draw_world(Player *player, Texture2D *textures) {
             perpendicular_wall_dist = side_dist.y - delta_dist.y;
         float line_height = wall_height / perpendicular_wall_dist;
 
-        // Calculate value of wall_x
         double wall_x;
         if (side == 0)
             wall_x = player->position.y / tile_size +
@@ -101,11 +100,12 @@ void draw_world(Player *player, Texture2D *textures) {
         if (side == 1 && ray_dir.y < 0)
             tex_x = 64 - tex_x - 1;
 
-        int draw_start = -line_height / 2.f + SCREEN_HEIGHT / 2.f;
+        float draw_start = -line_height / 2.f + SCREEN_HEIGHT / 2.f;
         Rectangle texture_stripe = {tex_x, 0, 1, 64};
         Rectangle world_stripe = {x, draw_start, 1, line_height};
-        DrawTexturePro(textures[(int)fmin(world_tile - 1, 1)], texture_stripe,
-                       world_stripe, (Vector2){0, 0}, 0, WHITE);
+        DrawTexturePro(textures[(int)fmax(0, fmin(world_tile - 1, 7))], texture_stripe,
+                       world_stripe, (Vector2){0, 0}, 0,
+                       side == 1 ? ColorBrightness(WHITE, -0.3f) : WHITE);
     }
 }
 
@@ -116,24 +116,23 @@ void draw_everything(Player *player, Texture *textures) {
 }
 
 void handle_input(Player *player) {
+    Vector2 mouse_delta = GetMouseDelta();
     PollInputEvents();
+    SetMousePosition(SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f);
     float multiplier = 1;
     if (IsKeyPressed(KEY_ESCAPE))
         CloseWindow();
     if (IsKeyDown(KEY_LEFT_SHIFT))
         multiplier = 3.f;
-    if (IsKeyDown(KEY_D)) {
-        player_rotate(player, 0.1);
-    }
-    if (IsKeyDown(KEY_A)) {
-        player_rotate(player, -0.1);
-    }
-    if (IsKeyDown(KEY_W)) {
-        player_move_forward(player, 0.1 * multiplier);
-    }
-    if (IsKeyDown(KEY_S)) {
-        player_move_backward(player, 0.1 * multiplier);
-    }
+    if (IsKeyDown(KEY_W))
+        player_move(player, 0.1 * multiplier);
+    else if (IsKeyDown(KEY_S))
+        player_move(player, -0.1 * multiplier);
+    if (IsKeyDown(KEY_D))
+        player_strafe(player, 0.1);
+    else if (IsKeyDown(KEY_A))
+        player_strafe(player, -0.1);
+    player_rotate(player, mouse_delta.x * 0.001);
 }
 
 void check_collission(Player *player) {
@@ -152,19 +151,24 @@ int main(void) {
         .cameraPlane = {0, 30},
     };
 
-
-
+    unsigned int config_flags = FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_FULLSCREEN_MODE;
+    SetConfigFlags(config_flags);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raycaster");
-
-    Texture2D textures[2] = {
-        LoadTexture("./textures/bluestone.png"),
+    HideCursor();
+    Texture2D textures[] = {
         LoadTexture("./textures/eagle.png"),
+        LoadTexture("./textures/redbrick.png"),
+        LoadTexture("./textures/purplestone.png"),
+        LoadTexture("./textures/greystone.png"),
+        LoadTexture("./textures/bluestone.png"),
+        LoadTexture("./textures/mossy.png"),
+        LoadTexture("./textures/wood.png"),
+        LoadTexture("./textures/colorstone.png"),
     };
     while (!WindowShouldClose()) {
         handle_input(&player);
         check_collission(&player);
         draw_everything(&player, textures);
-        printf("%d\n", GetFPS());
     }
     CloseWindow();
     return 0;
