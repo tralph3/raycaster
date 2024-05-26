@@ -1,10 +1,9 @@
-#include "player.h"
-#include "textures.h"
-
 #include <raylib.h>
 #include <raymath.h>
 #include <dirent.h>
 
+#include "player.h"
+#include "textures.h"
 #include "renderer.h"
 #include "input.h"
 #include "physics.h"
