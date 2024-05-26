@@ -2,31 +2,34 @@
 #define PLAYER_H
 
 #include <raylib.h>
-#include "vector.h"
-
-#define PLAYER_SIZE 10
+#include <raymath.h>
 
 typedef struct {
     Vector2 position;
     Vector2 oldPosition;
     Vector2 direction;
     Vector2 cameraPlane;
+    float speed;
+    float rotation_speed;
 } Player;
 
-void player_move(Player *player, float amount) {
+void player_move(Player *player, Vector2 direction, float multiplier) {
+    float delta_time = GetFrameTime();
+    direction = Vector2Normalize(direction);
+    Vector2 fw_movement = Vector2Scale(player->direction, direction.y);
+    Vector2 strafe_movement = Vector2Scale(player->cameraPlane, direction.x);
+    direction = Vector2Add(fw_movement, strafe_movement);
     player->oldPosition = player->position;
-    player->position =
-        vec2_add(player->position, vec2_mul(player->direction, amount));
+    player->position = Vector2Add(
+        player->position,
+        Vector2Scale(direction, player->speed * multiplier * delta_time));
 }
 
 void player_rotate(Player *player, float amount) {
-    player->direction = vec2_rotate(player->direction, amount);
-    player->cameraPlane = vec2_rotate(player->cameraPlane, amount);
-}
-
-void player_strafe(Player *player, float amount) {
-    player->oldPosition = player->position;
-    player->position = vec2_add(player->position, vec2_mul(player->cameraPlane, amount));
+    player->direction = Vector2Rotate(
+        player->direction, player->rotation_speed * amount);
+    player->cameraPlane = Vector2Rotate(
+        player->cameraPlane, player->rotation_speed * amount);
 }
 
 #endif
