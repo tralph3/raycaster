@@ -12,11 +12,9 @@
 
 #define SCREEN_CENTER                                                          \
     (Vector2) { SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f }
-#define WALL_HEIGHT 900.f
+#define WALL_HEIGHT (SCREEN_HEIGHT * 0.85f)
 
-#define TILE_SIZE ((float)SCREEN_WIDTH / MAP_WIDTH)
-
-void draw_world(Player*, TextureArr*);
-void draw_everything(Player*, TextureArr*);
+void draw_world(Player*, TextureArr*, SpriteArr*);
+void draw_everything(Player*, TextureArr*, SpriteArr*);
 
 #endif

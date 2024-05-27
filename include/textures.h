@@ -9,8 +9,10 @@ typedef struct {
     Texture2D *items;
 } TextureArr;
 
+typedef int TextureID;
+
 typedef struct {
-    Texture2D texture;
+    TextureID texture;
     Vector2 position;
 } Sprite;
 

@@ -1,18 +1,16 @@
 #include "renderer.h"
 
-void draw_world(Player *player, TextureArr *textures) {
+void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites) {
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_CENTER.y,
                   ColorBrightness(GRAY, -0.4f));
     DrawRectangle(0, SCREEN_CENTER.y, SCREEN_WIDTH, SCREEN_CENTER.y, GRAY);
     float stripe_perp_distance[SCREEN_WIDTH] = {0};
 
     for (int x = 0; x <= SCREEN_WIDTH; ++x) {
-        int map_x = (int)player->position.x / TILE_SIZE;
-        int map_y = (int)player->position.y / TILE_SIZE;
-        float p_percentage_x =
-            (player->position.x - TILE_SIZE * map_x) / TILE_SIZE;
-        float p_percentage_y =
-            (player->position.y - TILE_SIZE * map_y) / TILE_SIZE;
+        int map_x = player->position.x;
+        int map_y = player->position.y;
+        float p_percentage_x = player->position.x - map_x;
+        float p_percentage_y = player->position.y - map_y;
         int step_x;
         int step_y;
         bool hit = false;
@@ -71,11 +69,9 @@ void draw_world(Player *player, TextureArr *textures) {
 
         double wall_x;
         if (side == 0)
-            wall_x = player->position.y / TILE_SIZE +
-                     perpendicular_wall_dist * ray_dir.y;
+            wall_x = player->position.y + perpendicular_wall_dist * ray_dir.y;
         else
-            wall_x = player->position.x / TILE_SIZE +
-                     perpendicular_wall_dist * ray_dir.x;
+            wall_x = player->position.x + perpendicular_wall_dist * ray_dir.x;
         wall_x -= floor(wall_x);
 
         int tex_x = (int)(wall_x * (double)texture->width);
@@ -92,8 +88,8 @@ void draw_world(Player *player, TextureArr *textures) {
     }
 }
 
-void draw_everything(Player *player, TextureArr *textures) {
+void draw_everything(Player *player, TextureArr *textures, SpriteArr *sprites) {
     BeginDrawing();
-    draw_world(player, textures);
+    draw_world(player, textures, sprites);
     EndDrawing();
 }
