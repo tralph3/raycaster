@@ -10,6 +10,13 @@
 #include "input.h"
 #include "physics.h"
 
+void move_barrel(Player *player, Sprite *barrel) {
+    float delta_time = GetFrameTime();
+    Vector2 direction = Vector2Normalize(Vector2Subtract(player->position, barrel->position));
+    barrel->position =
+      Vector2Add(barrel->position, Vector2Scale(direction, 2 * delta_time));
+}
+
 int main(void) {
     Player player = {
         .position = {1.5, 1.5},
@@ -23,7 +30,7 @@ int main(void) {
     SetConfigFlags(config_flags);
 
     SpriteArr sprites = {0};
-    Sprite sprite = {.texture = 8, .position = (Vector2){4.5, 1.5}};
+    Sprite sprite = {.texture_id = 8, .position = (Vector2){20.5, 6.5}};
     da_append(&sprites, sprite);
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raycaster");
@@ -34,9 +41,10 @@ int main(void) {
     TextureArr textures = load_all_textures();
 
     while (!WindowShouldClose()) {
-        if (!IsSoundPlaying(bg))
-            PlaySound(bg);
+        /* if (!IsSoundPlaying(bg)) */
+        /*     PlaySound(bg); */
         handle_input(&player);
+        move_barrel(&player, &sprites.items[0]);
         check_collission(&player);
         draw_everything(&player, &textures, &sprites);
     }

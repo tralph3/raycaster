@@ -14,6 +14,8 @@
     (Vector2) { SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f }
 #define WALL_HEIGHT (SCREEN_HEIGHT * 0.85f)
 
+void print_vector(Vector2);
+void sort_sprites(Player*, SpriteArr*);
 void draw_world(Player*, TextureArr*, SpriteArr*);
 void draw_everything(Player*, TextureArr*, SpriteArr*);
 

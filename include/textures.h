@@ -12,7 +12,7 @@ typedef struct {
 typedef int TextureID;
 
 typedef struct {
-    TextureID texture;
+    TextureID texture_id;
     Vector2 position;
 } Sprite;
 
