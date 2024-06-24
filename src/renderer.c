@@ -16,7 +16,7 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
     DrawRectangle(0, SCREEN_CENTER.y, SCREEN_WIDTH, SCREEN_CENTER.y, GRAY);
     float stripe_perp_distance[SCREEN_WIDTH] = {0};
 
-    for (int x = 0; x <= SCREEN_WIDTH; ++x) {
+    for (int x = 0; x < SCREEN_WIDTH; ++x) {
         int map_x = player->position.x;
         int map_y = player->position.y;
         float p_percentage_x = player->position.x - map_x;
