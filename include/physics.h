@@ -2,7 +2,8 @@
 #define PHYSICS_H
 
 #include "player.h"
+#include "map.h"
 
-void check_collission(Player*);
+void check_collission(Player*, Map*);
 
 #endif

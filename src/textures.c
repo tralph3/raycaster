@@ -17,5 +17,6 @@ TextureArr load_all_textures(void) {
     da_append(&texture_arr, LoadTexture("./assets/textures/pillar.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/greenlight.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/warning_tape.png"));
+    da_append(&texture_arr, LoadTexture("./assets/textures/chase.png"));
     return texture_arr;
 }

@@ -5,7 +5,7 @@
 
 typedef struct {
     Vector2 position;
-    Vector2 oldPosition;
+    Vector2 old_position;
     Vector2 direction;
     Vector2 cameraPlane;
     float speed;

@@ -3,7 +3,7 @@
 
 #include <raylib.h>
 
-#include "map1.h"
+#include "map.h"
 #include "player.h"
 #include "textures.h"
 
@@ -16,7 +16,7 @@
 
 void print_vector(Vector2);
 void sort_sprites(Player*, SpriteArr*);
-void draw_world(Player*, TextureArr*, SpriteArr*);
-void draw_everything(Player*, TextureArr*, SpriteArr*);
+void draw_world(Player*, TextureArr*, SpriteArr*, Map*);
+void draw_everything(Player*, TextureArr*, SpriteArr*, Map*);
 
 #endif

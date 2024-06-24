@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "map.h"
 #include <raylib.h>
 #include <raymath.h>
 
@@ -9,7 +10,7 @@ void print_vector(Vector2 v) {
 }
 
 
-void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites) {
+void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *map) {
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_CENTER.y,
                   ColorBrightness(GRAY, -0.4f));
     DrawRectangle(0, SCREEN_CENTER.y, SCREEN_WIDTH, SCREEN_CENTER.y, GRAY);
@@ -62,7 +63,7 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites) {
                 side = 1;
             }
 
-            world_tile = world_map[map_x + map_y * MAP_WIDTH];
+            world_tile = get_wall_at_point(map, (Vector2){map_x, map_y});
             if (world_tile > 0)
                 hit = true;
         }
@@ -119,7 +120,6 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites) {
       if(drawStartX < 0) drawStartX = 0;
       int drawEndX = spriteWidth / 2 + spriteScreenX;
       if(drawEndX >= SCREEN_WIDTH) drawEndX = SCREEN_WIDTH - 1;
-
       for(int stripe = drawStartX; stripe < drawEndX; stripe++)
       {
         int texX = (256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * sprite_texture.width / spriteWidth) / 256;
@@ -136,9 +136,10 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites) {
 }
 
 
-void draw_everything(Player *player, TextureArr *textures, SpriteArr *sprites) {
+void draw_everything(Player *player, TextureArr *textures, SpriteArr *sprites, Map *map) {
     BeginDrawing();
-    draw_world(player, textures, sprites);
+    draw_world(player, textures, sprites, map);
+    DrawFPS(0, 0);
     EndDrawing();
 }
 
