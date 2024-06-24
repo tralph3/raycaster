@@ -24,6 +24,7 @@ int main(void) {
         .direction = {1, 0},
         .cameraPlane = {0, 1},
         .speed = 2,
+        .size = 0.3,
         .rotation_speed = 0.001,
     };
     unsigned int config_flags = FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_FULLSCREEN_MODE;

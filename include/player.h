@@ -9,6 +9,7 @@ typedef struct {
     Vector2 direction;
     Vector2 cameraPlane;
     float speed;
+    float size;
     float rotation_speed;
 } Player;
 
