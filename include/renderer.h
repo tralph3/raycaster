@@ -15,7 +15,8 @@
 void print_vector(Vector2);
 void sort_sprites(Player*, SpriteArr*);
 void draw_world(Player*, TextureArr*, SpriteArr*, Map*);
-void draw_everything(Player*, TextureArr*, SpriteArr*, Map*);
+void draw_everything(Player*, TextureArr*, SpriteArr*, Map*, Texture2D*);
 void init_ray_lengths(void);
+void set_screen_buffer_pixel(Vector2, Color);
 
 #endif

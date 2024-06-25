@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "map.h"
+#include "textures.h"
 #include <raylib.h>
 #include <raymath.h>
 
@@ -12,12 +13,20 @@ void print_vector(Vector2 v) {
 }
 
 float ray_lengths[SCREEN_HEIGHT] = {0};
+Color screen_buffer[SCREEN_WIDTH * SCREEN_HEIGHT] = {0};
 
 void init_ray_lengths(void) {
   for (int y = SCREEN_CENTER.y; y < SCREEN_HEIGHT; ++y) {
     float ray_angle = atan(y - SCREEN_HEIGHT / 2.f);
     ray_lengths[y] = (SCREEN_HEIGHT / 2.f) / tan(ray_angle);
   }
+}
+
+void set_screen_buffer_pixel(Vector2 position, Color color) {
+  int index = (int)position.x + (int)position.y * SCREEN_WIDTH;
+  if (index >= SCREEN_WIDTH * SCREEN_HEIGHT || index < 0)
+    return;
+  screen_buffer[index] = color;
 }
 
 void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *map) {
@@ -72,8 +81,7 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
             if (world_tile > 0)
                 hit = true;
         }
-        Texture2D *texture =
-            &textures->items[(int)fmin(world_tile - 1, textures->count - 1)];
+        Texture2D *texture = &textures->items[world_tile - 1].texture;
 
         if (side == 0)
             perpendicular_wall_dist = side_dist.x - delta_dist.x;
@@ -82,21 +90,21 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
         stripe_perp_distance[x] = perpendicular_wall_dist;
         float line_height = SCREEN_HEIGHT / perpendicular_wall_dist;
         float wall_bottom = SCREEN_CENTER.y + line_height / 2.f;
-        Texture2D floor_texture = textures->items[7];
+        ColorArray *floor_texture = &textures->items[12];
         for (int y = wall_bottom; y < SCREEN_HEIGHT; ++y) {
           Vector2 texture_pos =
             Vector2Add(player->position, Vector2Scale(ray_dir, ray_lengths[y]));
           texture_pos.x -= (int)texture_pos.x;
           texture_pos.y -= (int)texture_pos.y;
-          Rectangle texture_pixel = {(int)(texture_pos.x * floor_texture.width),
-                                     (int)(texture_pos.y * floor_texture.height),
-                                     1, 1};
-          Rectangle screen_pixel = {x, y, 1, 1};
-          DrawTexturePro(floor_texture, texture_pixel, screen_pixel,
-                         Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
-          Rectangle screen_pixel_ceil = {x, y - ((y - (SCREEN_CENTER.y)) * 2), 1, 1};
-          DrawTexturePro(floor_texture, texture_pixel, screen_pixel_ceil,
-                         Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+
+          Vector2 texture_pixel = {(int)(texture_pos.x * floor_texture->width),
+                                     (int)(texture_pos.y * floor_texture->height)};
+
+          set_screen_buffer_pixel(
+                                  (Vector2){x, y}, get_pixel_color(floor_texture, texture_pixel));
+          set_screen_buffer_pixel(
+              (Vector2){x, y - ((y - (SCREEN_CENTER.y)) * 2)},
+                                  get_pixel_color(floor_texture, texture_pixel));
         }
 
         double wall_x;
@@ -117,13 +125,14 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
         Rectangle world_stripe = {x, draw_start, 1, line_height};
         DrawTexturePro(*texture, texture_stripe, world_stripe, (Vector2){0, 0},
                        0, side == 1 ? ColorBrightness(WHITE, -0.3f) : WHITE);
+
     }
 
     sort_sprites(player, sprites);
     for(int i = 0; i < sprites->count; ++i) {
       Vector2 sprite_pos =
         Vector2Subtract(sprites->items[i].position, player->position);
-      Texture2D sprite_texture = textures->items[sprites->items[i].texture_id];
+      Texture2D sprite_texture = textures->items[sprites->items[i].texture_id].texture;
 
       double invDet = 1.0 / (player->cameraPlane.x * player->direction.y - player->direction.x * player->cameraPlane.y);
 
@@ -151,17 +160,19 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
           Rectangle tex_stripe = {texX, 0, 1, sprite_texture.height};
           Rectangle world_stripe = {stripe, drawStartY, 1, spriteHeight};
           DrawTexturePro(sprite_texture, tex_stripe, world_stripe,
-                         (Vector2){0, 0}, 0, WHITE);
+                         Vector2Zero(), 0, WHITE);
         }
       }
     }
 }
 
 
-void draw_everything(Player *player, TextureArr *textures, SpriteArr *sprites, Map *map) {
+void draw_everything(Player *player, TextureArr *textures, SpriteArr *sprites, Map *map, Texture2D *screen_texture) {
     BeginDrawing();
+    DrawTexture(*screen_texture, 0, 0, WHITE);
     draw_world(player, textures, sprites, map);
-    DrawFPS(0, 0);
+    UpdateTexture(*screen_texture, screen_buffer);
+    DrawFPS(0,0 );
     EndDrawing();
 }
 

@@ -3,12 +3,12 @@
 #include <dirent.h>
 #include "map.h"
 
-#include "dynarray.h"
 #include "player.h"
 #include "textures.h"
 #include "renderer.h"
 #include "input.h"
 #include "physics.h"
+#include <stdio.h>
 
 int main(void) {
     Map map = load_map("./assets/maps/test.map");
@@ -21,8 +21,9 @@ int main(void) {
         .size = 0.3,
         .rotation_speed = 0.001,
     };
-    unsigned int config_flags = FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_FULLSCREEN_MODE;
+    unsigned int config_flags = FLAG_MSAA_4X_HINT | FLAG_FULLSCREEN_MODE;
     SetConfigFlags(config_flags);
+
 
     SpriteArr sprites = {0};
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raycaster");
@@ -30,6 +31,9 @@ int main(void) {
     Sound bg = LoadSound("./assets/sounds/bg.wav");
     HideCursor();
 
+    Image screen_image = LoadImageFromScreen();
+    Texture2D screen_texture = LoadTextureFromImage(screen_image);
+    UnloadImage(screen_image);
     TextureArr textures = load_all_textures();
     init_ray_lengths();
 
@@ -39,7 +43,7 @@ int main(void) {
         /* } */
         handle_input(&player);
         check_collission(&player, &map);
-        draw_everything(&player, &textures, &sprites, &map);
+        draw_everything(&player, &textures, &sprites, &map, &screen_texture);
     }
     return 0;
 }
