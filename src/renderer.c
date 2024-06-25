@@ -5,22 +5,27 @@
 
 #include <stdio.h>
 
+const Vector2 SCREEN_CENTER = { SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f };
+
 void print_vector(Vector2 v) {
     printf("X: %f | Y: %f\n", v.x, v.y);
 }
 
+float ray_lengths[SCREEN_HEIGHT] = {0};
+
+void init_ray_lengths(void) {
+  for (int y = SCREEN_CENTER.y; y < SCREEN_HEIGHT; ++y) {
+    float ray_angle = atan(y - SCREEN_HEIGHT / 2.f);
+    ray_lengths[y] = (SCREEN_HEIGHT / 2.f) / tan(ray_angle);
+  }
+}
 
 void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *map) {
-    DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_CENTER.y,
-                  ColorBrightness(GRAY, -0.4f));
-    DrawRectangle(0, SCREEN_CENTER.y, SCREEN_WIDTH, SCREEN_CENTER.y, GRAY);
     float stripe_perp_distance[SCREEN_WIDTH] = {0};
-
     for (int x = 0; x < SCREEN_WIDTH; ++x) {
-        int map_x = player->position.x;
-        int map_y = player->position.y;
-        float p_percentage_x = player->position.x - map_x;
-        float p_percentage_y = player->position.y - map_y;
+        Vector2 map_pos = (Vector2){(int)player->position.x, (int)player->position.y};
+        float p_percentage_x = player->position.x - map_pos.x;
+        float p_percentage_y = player->position.y - map_pos.y;
         int step_x;
         int step_y;
         bool hit = false;
@@ -55,15 +60,15 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
         while (!hit) {
             if (side_dist.x < side_dist.y) {
                 side_dist.x += delta_dist.x;
-                map_x += step_x;
+                map_pos.x += step_x;
                 side = 0;
             } else {
                 side_dist.y += delta_dist.y;
-                map_y += step_y;
+                map_pos.y += step_y;
                 side = 1;
             }
 
-            world_tile = get_wall_at_point(map, (Vector2){map_x, map_y});
+            world_tile = get_wall_at_point(map, map_pos);
             if (world_tile > 0)
                 hit = true;
         }
@@ -75,22 +80,39 @@ void draw_world(Player *player, TextureArr *textures, SpriteArr *sprites, Map *m
         else
             perpendicular_wall_dist = side_dist.y - delta_dist.y;
         stripe_perp_distance[x] = perpendicular_wall_dist;
-        float line_height = WALL_HEIGHT / perpendicular_wall_dist;
+        float line_height = SCREEN_HEIGHT / perpendicular_wall_dist;
+        float wall_bottom = SCREEN_CENTER.y + line_height / 2.f;
+        Texture2D floor_texture = textures->items[7];
+        for (int y = wall_bottom; y < SCREEN_HEIGHT; ++y) {
+          Vector2 texture_pos =
+            Vector2Add(player->position, Vector2Scale(ray_dir, ray_lengths[y]));
+          texture_pos.x -= (int)texture_pos.x;
+          texture_pos.y -= (int)texture_pos.y;
+          Rectangle texture_pixel = {(int)(texture_pos.x * floor_texture.width),
+                                     (int)(texture_pos.y * floor_texture.height),
+                                     1, 1};
+          Rectangle screen_pixel = {x, y, 1, 1};
+          DrawTexturePro(floor_texture, texture_pixel, screen_pixel,
+                         Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+          Rectangle screen_pixel_ceil = {x, y - ((y - (SCREEN_CENTER.y)) * 2), 1, 1};
+          DrawTexturePro(floor_texture, texture_pixel, screen_pixel_ceil,
+                         Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+        }
 
         double wall_x;
         if (side == 0)
             wall_x = player->position.y + perpendicular_wall_dist * ray_dir.y;
         else
             wall_x = player->position.x + perpendicular_wall_dist * ray_dir.x;
-        wall_x -= floor(wall_x);
+        wall_x -= (int)wall_x;
 
-        int tex_x = (int)(wall_x * (double)texture->width);
+        int tex_x = wall_x * texture->width;
         if (ray_dir.x < 0 && side == 0)
             tex_x = texture->width - tex_x - 1;
         if (ray_dir.y > 0 && side == 1)
             tex_x = texture->width - tex_x - 1;
 
-        float draw_start = -line_height / 2.f + SCREEN_HEIGHT / 2.f;
+        float draw_start = -line_height / 2.f + SCREEN_CENTER.y;
         Rectangle texture_stripe = {tex_x, 0, 1, texture->height};
         Rectangle world_stripe = {x, draw_start, 1, line_height};
         DrawTexturePro(*texture, texture_stripe, world_stripe, (Vector2){0, 0},

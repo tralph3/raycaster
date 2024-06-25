@@ -11,7 +11,7 @@
 #include "physics.h"
 
 int main(void) {
-    Map map = load_map("assets/maps/test.map");
+    Map map = load_map("./assets/maps/test.map");
     Player player = {
         .position = map.player_start_position,
         .old_position = map.player_start_position,
@@ -31,11 +31,12 @@ int main(void) {
     HideCursor();
 
     TextureArr textures = load_all_textures();
+    init_ray_lengths();
 
     while (!WindowShouldClose()) {
-      if (!IsSoundPlaying(bg)) {
-        PlaySound(bg);
-      }
+        /* if (!IsSoundPlaying(bg)) { */
+        /*   PlaySound(bg); */
+        /* } */
         handle_input(&player);
         check_collission(&player, &map);
         draw_everything(&player, &textures, &sprites, &map);

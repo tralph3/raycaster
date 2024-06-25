@@ -1,6 +1,6 @@
 CC:=gcc
 INCLUDE:=-I./include
-CFLAGS:=-Wall -Wextra -pedantic -ggdb -lm $(INCLUDE) $(shell pkg-config --cflags --libs raylib)
+CFLAGS:=-Wall -Wextra -pedantic -lm $(INCLUDE) $(shell pkg-config --cflags --libs raylib)
 FILES:=$(wildcard src/*.c)
 DUSE_WAYLAND_DISPLAY=TRUE
 
@@ -17,6 +17,9 @@ main: $(FILES)
 
 debug: $(FILES)
 	$(CC) $(CFLAGS) -ggdb -o build/$@ $^
+
+release: $(FILES)
+	$(CC) $(CFLAGS) -O3 -o build/$@ $^
 
 clean:
 	rm -rf ./build
