@@ -84,8 +84,6 @@ Player create_new_player(Vector2 initial_position, PlayerDirection initial_direc
     player.camera_plane = camera_plane;
     float fov_x = fabs(Vector2Angle(
                                     Vector2Add(player.camera_plane, player.direction), player.direction)) * 2;
-    printf("%f\n", fov_x);
-      printf("%f\n", PI/2);
     float aspect_ratio = (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT;
     float fov_y = 2 * atan(tan(fov_x/2.f)/aspect_ratio);
     Camera camera = {

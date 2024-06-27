@@ -3,19 +3,12 @@
 #include <raylib.h>
 
 typedef struct {
-    int width;
-    int height;
-    Color *data;
-    Texture2D texture;
-} ColorArray;
-
-typedef struct {
     int count;
     int capacity;
-    ColorArray *items;
+    Texture2D *items;
 } TextureArr;
 
-typedef int TextureID;
+typedef unsigned char TextureID;
 
 typedef struct {
     TextureID texture_id;
@@ -28,8 +21,7 @@ typedef struct {
     Sprite *items;
 } SpriteArr;
 
-ColorArray load_texture(char*);
 TextureArr load_all_textures(void);
-Color get_pixel_color(ColorArray*, Vector2);
+Texture2D get_texture(TextureArr*, TextureID);
 
 #endif

@@ -51,7 +51,7 @@ Vector2 cast_ray(int ray, Player *player, Map *map) {
     side_dist.y = (1 - p_percentage_y) * delta_dist.y;
   }
 
-  int world_tile;
+  MapTile world_tile;
   while (!hit) {
     if (side_dist.x < side_dist.y) {
       side_dist.x += delta_dist.x;
@@ -61,18 +61,15 @@ Vector2 cast_ray(int ray, Player *player, Map *map) {
       map_pos.y += step_y;
     }
 
-    world_tile = get_wall_at_point(map, map_pos);
-    if (world_tile > 0)
+    world_tile = get_tile_at_point(map, map_pos);
+    if (world_tile.type == TILE_TYPE_WALL)
       hit = true;
   }
   return map_pos;
 }
-void draw_world(Game *game) {
+void calculate_visible_walls(Game *game) {
   Player *player = &game->player;
-  TextureArr *textures = &game->textures;
-  SpriteArr *sprites = &game->sprites;
   Map *map = &game->map;
-  float stripe_perp_distance[SCREEN_WIDTH] = {0};
   bool stop_casting = false;
   int ray1 = 0;
   while (!stop_casting) {
@@ -107,47 +104,21 @@ void draw_world(Game *game) {
       }
     }
 
-    sort_sprites(player, sprites);
-    for(int i = 0; i < sprites->count; ++i) {
-      Vector2 sprite_pos =
-        Vector2Subtract(sprites->items[i].position, player->position);
-      ColorArray sprite_texture = textures->items[sprites->items[i].texture_id];
 
-      double invDet = 1.0 / (player->camera_plane.x * player->direction.y - player->direction.x * player->camera_plane.y);
+}
 
-      double transformX = invDet * (player->direction.y * sprite_pos.x - player->direction.x * sprite_pos.y);
-      double transformY = invDet * (-player->camera_plane.y * sprite_pos.x + player->camera_plane.x * sprite_pos.y);
-
-      int spriteScreenX = (SCREEN_WIDTH / 2.f) * (1 + transformX / transformY);
-
-      int spriteHeight = fabs(SCREEN_HEIGHT / (transformY));
-      int drawStartY = -spriteHeight / 2 + SCREEN_HEIGHT / 2;
-      int drawEndY = spriteHeight / 2 + SCREEN_HEIGHT / 2;
-      if(drawEndY >= SCREEN_HEIGHT) drawEndY = SCREEN_HEIGHT - 1;
-
-      int spriteWidth = fabs( (SCREEN_HEIGHT / (transformY)));
-      int drawStartX = -spriteWidth / 2 + spriteScreenX;
-      if(drawStartX < 0) drawStartX = 0;
-      int drawEndX = spriteWidth / 2 + spriteScreenX;
-      if(drawEndX >= SCREEN_WIDTH) drawEndX = SCREEN_WIDTH - 1;
-      for(int stripe = drawStartX; stripe < drawEndX; stripe++)
-      {
-        int texX = (256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * sprite_texture.width / spriteWidth) / 256;
-        if (transformY > 0 && stripe > 0 && stripe < SCREEN_WIDTH &&
-            transformY < stripe_perp_distance[stripe]) {
-
-          Rectangle tex_stripe = {texX, 0, 1, sprite_texture.height};
-          Rectangle world_stripe = {stripe, drawStartY, 1, spriteHeight};
-          DrawTexturePro(sprite_texture.texture, tex_stripe, world_stripe, Vector2Zero(), 0, WHITE);
-        }
-      }
-    }
+void draw_sprites(Game *game) {
+  for (int i = 0; i < game->sprites.count; ++i) {
+    Sprite *sprite = &game->sprites.items[i];
+    DrawBillboard(
+                  game->player.camera, get_texture(&game->textures, sprite->texture_id),
+                  (Vector3){sprite->position.x, 0.5, sprite->position.y}, 1, WHITE);
+  }
 }
 
 void draw_floor_cell(Vector2 position, Game *game) {
-  int tile = get_floor_at_point(&game->map, position) - 1;
-  if(tile == - 1) return;
-  int gl_texture_id = game->textures.items[tile].texture.id;
+  MapTile tile = get_tile_at_point(&game->map, position);
+  int gl_texture_id = get_texture(&game->textures, tile.floor_id).id;
   rlSetTexture(gl_texture_id);
 
   rlTexCoord2f(0, 0);
@@ -164,9 +135,8 @@ void draw_floor_cell(Vector2 position, Game *game) {
 }
 
 void draw_ceiling_cell(Vector2 position, Game *game) {
-  int tile = get_ceiling_at_point(&game->map, position) - 1;
-  if(tile == - 1) return;
-  int gl_texture_id = game->textures.items[tile].texture.id;
+  MapTile tile = get_tile_at_point(&game->map, position);
+  int gl_texture_id = get_texture(&game->textures, tile.ceiling_id).id;
   rlSetTexture(gl_texture_id);
 
   rlTexCoord2f(1, 0);
@@ -183,8 +153,8 @@ void draw_ceiling_cell(Vector2 position, Game *game) {
 }
 
 void draw_wall_cell(Vector2 position, Game *game) {
-  int tile = get_wall_at_point(&game->map, position) - 1;
-  int gl_texture_id = game->textures.items[tile].texture.id;
+  MapTile tile = get_tile_at_point(&game->map, position);
+  int gl_texture_id = get_texture(&game->textures, tile.wall_id).id;
   rlSetTexture(gl_texture_id);
 
   // LEFT SIDE QUAD
@@ -241,6 +211,25 @@ void draw_wall_cell(Vector2 position, Game *game) {
   rlVertex3f(position.x, 1, position.y);
 }
 
+void draw_decal(Vector2 position, Game *game) {
+  Texture2D decal = get_texture(&game->textures,11);
+  rlSetTexture(decal.id);
+  float scale = 0.007;
+  float scaled_width = decal.width * scale;
+  float scaled_height = decal.height * scale;
+  rlTexCoord2f(0, 0);
+  rlVertex3f(position.x, 0.5 + (scaled_height / 2), position.y + 1.0005);
+
+  rlTexCoord2f(0, 1);
+  rlVertex3f(position.x, 0.5 - (scaled_height / 2), position.y + 1.0005);
+
+  rlTexCoord2f(1, 1);
+  rlVertex3f(position.x + scaled_width, 0.5 - (scaled_height / 2), position.y + 1.0005);
+
+  rlTexCoord2f(1, 0);
+  rlVertex3f(position.x + scaled_width, 0.5 + (scaled_height / 2), position.y + 1.0005);
+}
+
 void draw_everything(Game *game) {
   visible_tile_index = 0;
   BeginDrawing();
@@ -249,21 +238,31 @@ void draw_everything(Game *game) {
                  (Rectangle){0, 0, game->sky.width, game->sky.height},
                  (Rectangle){0, 0, SCREEN_WIDTH, SCREEN_CENTER.y},
                  Vector2Zero(), 0, WHITE);
-    draw_world(game);
 
   BeginMode3D(game->player.camera);
   rlBegin(RL_QUADS);
   rlColor4ub(255, 255, 255, 255);
-
-  for (int x = 0; x < 24; ++x) {
-    for (int y = 0; y < 24; ++y) {
+  calculate_visible_walls(game);
+  for (unsigned int x = 0; x < game->map.width; ++x) {
+    for (unsigned int y = 0; y <  game->map.size / game->map.width; ++y) {
       draw_floor_cell((Vector2){x, y}, game);
       draw_ceiling_cell((Vector2){x, y}, game);
-      }
+    }
   }
   for (int i = 0; i < visible_tile_index; ++i) {
     draw_wall_cell(visible_tiles[i], game);
   }
+  draw_decal((Vector2){1.34, 0}, game);
+  draw_decal((Vector2){2.74, 0}, game);
+  draw_decal((Vector2){2.02, 0}, game);
+  draw_decal((Vector2){6.30, 0}, game);
+
+  // 3, 4
+  draw_decal((Vector2){3, 3.65}, game);
+  draw_decal((Vector2){3.51, 4}, game);
+  draw_decal((Vector2){4, 3.12}, game);
+  draw_decal((Vector2){3.23, 3}, game);
+  draw_sprites(game);
   rlEnd();
   EndMode3D();
   DrawFPS(0, 0);

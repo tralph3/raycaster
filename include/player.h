@@ -24,7 +24,7 @@ typedef enum {
 } PlayerDirection;
 
 void player_move(Player*, Vector2, float);
-void player_rotate(Player *, float);
+void player_rotate(Player*, float);
 void player_pitch(Player*, float);
 Player create_new_player(Vector2, PlayerDirection);
 void update_player_camera(Player*);
