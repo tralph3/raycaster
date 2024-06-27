@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include "input.h"
+#include "player.h"
 #include "renderer.h"
 
 void handle_input(Player *player) {
@@ -25,4 +26,5 @@ void handle_input(Player *player) {
         player_move_direction.x -= 1;
     player_move(player, player_move_direction, multiplier);
     player_rotate(player, mouse_delta.x * mouse_sensitivity);
+    player_pitch(player, mouse_delta.y * mouse_sensitivity);
 }

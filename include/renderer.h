@@ -6,17 +6,15 @@
 #include "map.h"
 #include "player.h"
 #include "textures.h"
+#include "game.h"
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
-
-#define WALL_HEIGHT (SCREEN_HEIGHT * 0.85f)
+#define FACTOR 120
+#define SCREEN_WIDTH (16*FACTOR)
+#define SCREEN_HEIGHT (9*FACTOR)
 
 void print_vector(Vector2);
 void sort_sprites(Player*, SpriteArr*);
-void draw_world(Player*, TextureArr*, SpriteArr*, Map*);
-void draw_everything(Player*, TextureArr*, SpriteArr*, Map*, Texture2D*);
-void init_ray_lengths(void);
-void set_screen_buffer_pixel(Vector2, Color);
+void draw_world(Game*);
+void draw_everything(Game*);
 
 #endif

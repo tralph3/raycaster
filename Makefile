@@ -19,7 +19,10 @@ debug: $(FILES)
 	$(CC) $(CFLAGS) -ggdb -o build/$@ $^
 
 release: $(FILES)
-	$(CC) $(CFLAGS) -O3 -o build/$@ $^
+	$(CC) $(CFLAGS) -O2 -o build/$@ $^
+
+profile: $(FILES)
+	$(CC) $(CFLAGS) -pg -o build/$@ $^
 
 clean:
 	rm -rf ./build

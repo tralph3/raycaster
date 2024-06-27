@@ -17,7 +17,7 @@ ColorArray load_texture(char *path) {
     return color_array;
 }
 
-Color get_pixel_color(ColorArray* color_array, Vector2 value) {
+inline Color get_pixel_color(ColorArray* color_array, Vector2 value) {
   return color_array->data[(int)value.x + (int)value.y * color_array->width];
 }
 

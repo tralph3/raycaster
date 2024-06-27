@@ -1,6 +1,5 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
-
 #include <raylib.h>
 
 typedef struct {
