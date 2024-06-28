@@ -6,6 +6,7 @@
 #include "player.h"
 #include "textures.h"
 #include "dynarray.h"
+#include "editor.h"
 #include <raylib.h>
 #include <stdio.h>
 
@@ -14,7 +15,7 @@ Game create_new_game(void) {
 
   InitWindow(0, 0, "Raycaster");
   InitAudioDevice();
-  HideCursor();
+  /* HideCursor(); */
 
 
   Renderer renderer = {
@@ -38,7 +39,7 @@ Game create_new_game(void) {
   float aspect_ratio = (float)renderer.render_width/renderer.render_height;
   Game game = {
       .map = map,
-      .state = GAME_STATE_PLAY,
+      .state = GAME_STATE_EDITOR,
       .player =
           create_new_player(map.player_start_position, PLAYER_DIRECTION_RIGHT, aspect_ratio),
       .textures = textures,
@@ -50,6 +51,10 @@ Game create_new_game(void) {
 }
 
 void game_run(Game *game) {
+  Camera2D editor_camera = {0};
+  editor_camera.target = Vector2Zero();
+  editor_camera.zoom = 1;
+
   while (!WindowShouldClose()) {
     /* if (!IsSoundPlaying(bg)) { */
     /*   PlaySound(bg); */
@@ -62,6 +67,8 @@ void game_run(Game *game) {
       draw_everything(&game->renderer, &game->player, &game->map);
       break;
     case GAME_STATE_EDITOR:
+      draw_editor_interface(&game->renderer, &game->map, &editor_camera);
+      editor_input(&editor_camera);
       break;
     default:
       fprintf(stderr, "ERROR: Unknown game state '%d'", game->state);
