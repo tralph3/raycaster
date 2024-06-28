@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "renderer.h"
 #include "textures.h"
 #include "map.h"
 #include "player.h"
@@ -18,6 +19,7 @@ typedef struct {
   TextureArr textures;
   SpriteArr sprites;
   Texture2D sky;
+  Renderer renderer;
 } Game;
 
 void game_run(Game *);

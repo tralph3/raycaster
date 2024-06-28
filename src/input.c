@@ -9,8 +9,6 @@ void handle_input(Player *player) {
     float multiplier = 1;
     float mouse_sensitivity = 1;
     PollInputEvents();
-    SetMousePosition(SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f);
-
     if (IsKeyPressed(KEY_ESCAPE))
         CloseWindow();
     if (IsKeyDown(KEY_LEFT_SHIFT))

@@ -39,7 +39,7 @@ void update_player_camera(Player *player) {
     player->camera.target.y = player->pitch;
 }
 
-Player create_new_player(Vector2 initial_position, PlayerDirection initial_direction) {
+Player create_new_player(Vector2 initial_position, PlayerDirection initial_direction, float aspect_ratio) {
     Player player = {
         .position = initial_position,
         .old_position = initial_position,
@@ -84,7 +84,6 @@ Player create_new_player(Vector2 initial_position, PlayerDirection initial_direc
     player.camera_plane = camera_plane;
     float fov_x = fabs(Vector2Angle(
                                     Vector2Add(player.camera_plane, player.direction), player.direction)) * 2;
-    float aspect_ratio = (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT;
     float fov_y = 2 * atan(tan(fov_x/2.f)/aspect_ratio);
     Camera camera = {
         .position = (Vector3){0, 0.5, 0},

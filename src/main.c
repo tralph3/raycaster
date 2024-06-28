@@ -33,14 +33,6 @@ int main(void) {
 #if 0
   generate_map();
 #else
-
-    unsigned int config_flags = FLAG_FULLSCREEN_MODE | FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT;
-    SetConfigFlags(config_flags);
-    SpriteArr sprites = {0};
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raycaster");
-    InitAudioDevice();
-    Sound bg = LoadSound("./assets/sounds/bg.wav");
-    HideCursor();
     Game game = create_new_game();
     game_run(&game);
 #endif
