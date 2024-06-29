@@ -36,3 +36,11 @@ void save_map(Map *map, char *path) {
 inline MapTile get_tile_at_point(Map *map, Vector2 position) {
   return map->data[(int)position.x + (int)position.y * map->width];
 }
+
+inline void set_tile_at_point(Map *map, Vector2 position, MapTile tile) {
+  map->data[(int)position.x + (int)position.y * map->width] = tile;
+}
+
+inline bool is_in_bounds(Map *map, Vector2 position) {
+  return !(position.x < 0 || position.x >= map->width || position.y < 0 || position.y * map->width >= map->size);
+}

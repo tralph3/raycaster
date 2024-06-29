@@ -54,6 +54,11 @@ void game_run(Game *game) {
   Camera2D editor_camera = {0};
   editor_camera.target = Vector2Zero();
   editor_camera.zoom = 1;
+  MapEditor editor = {
+      .current_tile = 1,
+      .camera = editor_camera,
+      .map = &game->map,
+  };
 
   while (!WindowShouldClose()) {
     /* if (!IsSoundPlaying(bg)) { */
@@ -67,8 +72,8 @@ void game_run(Game *game) {
       draw_everything(&game->renderer, &game->player, &game->map);
       break;
     case GAME_STATE_EDITOR:
-      draw_editor_interface(&game->renderer, &game->map, &editor_camera);
-      editor_input(&editor_camera);
+      draw_editor_interface(&game->renderer, &editor);
+      editor_input(&editor);
       break;
     default:
       fprintf(stderr, "ERROR: Unknown game state '%d'", game->state);

@@ -28,6 +28,8 @@ typedef struct {
 
 Map load_map(char*);
 void save_map(Map*, char*);
-MapTile get_tile_at_point(Map*, Vector2);
+MapTile get_tile_at_point(Map *, Vector2);
+void set_tile_at_point(Map *, Vector2, MapTile);
+bool is_in_bounds(Map *, Vector2);
 
 #endif
