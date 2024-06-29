@@ -8,7 +8,7 @@ void draw_map_tile(Renderer *renderer, Vector2 position, MapTile *tile) {
   Texture2D tile_texture = get_texture(&renderer->textures, tile->wall_id);
   Rectangle source = {0, 0, tile_texture.width, tile_texture.height};
   Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
-  if (tile->type == TILE_TYPE_WALL)
+  if(tile->type == TILE_TYPE_WALL)
     DrawTexturePro(tile_texture, source, destination, Vector2Zero(), 0, WHITE);
 }
 
@@ -39,7 +39,10 @@ void place_tile(Vector2 position, MapEditor *editor) {
   if (!is_in_bounds(editor->map, position)) return;
   MapTile tile = {0};
   tile.wall_id = editor->current_tile;
-  tile.type = TILE_TYPE_WALL;
+  if (tile.wall_id == 1)
+    tile.type = TILE_TYPE_EMPTY;
+  else
+    tile.type = TILE_TYPE_WALL;
   set_tile_at_point(editor->map, position, tile);
 }
 
@@ -55,18 +58,25 @@ void editor_input(MapEditor *editor) {
       place_tile(pointed_tile, editor);
   }
 
-  if (IsMouseButtonDown(1))
+  if (IsMouseButtonDown(2))
     camera->target = Vector2Subtract(camera->target, mouse_delta);
+
+  if (IsMouseButtonDown(1)) {
+    Vector2 mouse_pos_in_world =
+      GetScreenToWorld2D(GetMousePosition(), editor->camera);
+    Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE,
+                            mouse_pos_in_world.y / TILE_SIZE};
+    int prev_tile = editor->current_tile;
+    editor->current_tile = 1;
+    place_tile(pointed_tile, editor);
+    editor->current_tile = prev_tile;
+  }
 
   if (scroll_wheel_amount != 0)
     camera->zoom += scroll_wheel_amount * 0.1;
 
-  if (IsKeyPressed(KEY_ONE))
-    editor->current_tile = 2;
-  if (IsKeyPressed(KEY_TWO))
-    editor->current_tile = 3;
-  if (IsKeyPressed(KEY_THREE))
-    editor->current_tile = 4;
-  if (IsKeyPressed(KEY_FOUR))
-    editor->current_tile = 5;
+  for (char i = 1; i < 10; ++i) {
+    if (IsKeyPressed(i + 48))
+      editor->current_tile = i;
+  }
 }

@@ -21,7 +21,9 @@ void handle_input(Player *player) {
     if (IsKeyDown(KEY_D))
         player_move_direction.x += 1;
     if (IsKeyDown(KEY_A))
-        player_move_direction.x -= 1;
+      player_move_direction.x -= 1;
+    SetMousePosition(1920 / 2.f, 1080 / 2.f);
+    HideCursor();
     player_move(player, player_move_direction, multiplier);
     player_rotate(player, mouse_delta.x * mouse_sensitivity);
 }

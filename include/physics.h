@@ -1,8 +1,12 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include "game.h"
+#include "player.h"
+#include "map.h"
 
-void check_collission(Game*);
+#include <stdbool.h>
+
+void check_collission(Player*, Map*);
+bool is_square_colliding(Vector2, float, Map*);
 
 #endif

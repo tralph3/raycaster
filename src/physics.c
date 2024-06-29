@@ -1,4 +1,3 @@
-#include "game.h"
 #include "map.h"
 #include "player.h"
 
@@ -23,15 +22,14 @@ bool is_square_colliding(Vector2 square_position, float square_size, Map *map) {
   return top_left_tile.type == TILE_TYPE_WALL || top_right_tile.type == TILE_TYPE_WALL || bottom_left_tile.type == TILE_TYPE_WALL || bottom_right_tile.type == TILE_TYPE_WALL;
 }
 
-void check_collission(Game *game) {
-  Player* player = &game->player;
+void check_collission(Player *player, Map *map) {
   Vector2 new_x_position = {player->position.x, player->old_position.y};
   Vector2 new_y_position = {player->old_position.x, player->position.y};
 
-  if (is_square_colliding(new_x_position, player->size, &game->map)) {
+  if (is_square_colliding(new_x_position, player->size, map)) {
     player->position.x = player->old_position.x;
   }
-  if (is_square_colliding(new_y_position, player->size, &game->map)) {
+  if (is_square_colliding(new_y_position, player->size, map)) {
     player->position.y = player->old_position.y;
   }
 }
