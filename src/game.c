@@ -1,4 +1,5 @@
 #include "game.h"
+#include "gui.h"
 #include "map.h"
 #include "renderer.h"
 #include "player.h"
@@ -40,7 +41,8 @@ Game create_new_game(void) {
   Texture2D sky = LoadTexture("./assets/textures/sky.png");
   renderer.textures = textures;
   renderer.sprites = sprites;
-  float aspect_ratio = (float)renderer.render_width/renderer.render_height;
+  float aspect_ratio = (float)renderer.render_width / renderer.render_height;
+  gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
   Game game = {
       .map = map,
       .current_state = state_editor,

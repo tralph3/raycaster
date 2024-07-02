@@ -47,7 +47,7 @@ void draw_current_tile(Renderer *renderer, MapEditor *editor) {
   DrawTexturePro(tile_texture, source, destination, Vector2Zero(), 0, WHITE);
 }
 
-void draw_gui(MapEditor *editor) {
+void draw_gui(MapEditor *editor, Renderer *renderer) {
   const char *label;
   switch (editor->layer){
   case LAYER_WALL:
@@ -63,7 +63,7 @@ void draw_gui(MapEditor *editor) {
     break;
   }
 
-  DrawSpinner((Rectangle){10, 500, 60, 30}, &editor->layer, 0, 2, label);
+  DrawSpinner((Rectangle){10, renderer->screen_height - 50, 160, 40}, &editor->layer, 0, 2, label);
 }
 
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
@@ -79,7 +79,7 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
     }
   }
   EndMode2D();
-  draw_gui(editor);
+  draw_gui(editor, renderer);
   EndDrawing();
 }
 

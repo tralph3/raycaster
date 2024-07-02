@@ -23,6 +23,6 @@ typedef struct {
 void draw_map_tile(MapEditor *, Renderer*, Vector2, MapTile*);
 void draw_editor_interface(Renderer*, MapEditor*);
 void editor_input(MapEditor *);
-void draw_gui(MapEditor *);
+void draw_gui(MapEditor *, Renderer *);
 
 #endif

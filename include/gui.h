@@ -4,6 +4,12 @@
 #include <raylib.h>
 #include <stdbool.h>
 
+typedef struct {
+  Font font;
+} GUISettings;
+
+extern GUISettings gui_settings;
+
 bool is_mouse_hovering(Rectangle);
 bool is_button_clicked(Rectangle);
 void DrawButton(Rectangle, const char *, void (*Callback)(void *), void *);

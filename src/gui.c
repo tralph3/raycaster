@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <raymath.h>
 
+GUISettings gui_settings = {0};
+
 bool is_mouse_hovering(Rectangle rec) {
   Vector2 mouse_pos = GetMousePosition();
   return mouse_pos.x >= rec.x &&
@@ -16,7 +18,7 @@ bool is_button_clicked(Rectangle rec) {
 }
 
 void DrawButton(Rectangle rec, const char *label, void (*callback)(void *), void *callback_args) {
-  Color background = WHITE;
+  Color background = RAYWHITE;
   if (is_mouse_hovering(rec) && !IsMouseButtonDown(0))
     background = ColorBrightness(background, -0.1f);
   DrawRectangleRec(rec, background);
@@ -26,9 +28,14 @@ void DrawButton(Rectangle rec, const char *label, void (*callback)(void *), void
 }
 
 void DrawCenteredText(Rectangle rec, const char *label) {
-  int text_width = MeasureText(label, 12);
-  float text_x = (rec.x + (rec.width / 2.f)) - (text_width / 2.f);
-  DrawText(label, text_x, rec.y + (rec.height / 2.f) - 5, 10, BLACK);
+  float font_size = 24;
+  float font_spacing = 2;
+  Vector2 text_size = MeasureTextEx(gui_settings.font, label, font_size, font_spacing);
+  Vector2 position = {
+    .x = (rec.x + (rec.width / 2.f)) - (text_size.x / 2.f),
+    .y = (rec.y + (rec.height / 2.f)) - (text_size.y / 2.f),
+  };
+  DrawTextEx(gui_settings.font, label, position, font_size, font_spacing, BLACK);
 }
 
 
@@ -45,19 +52,19 @@ void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, co
   Rectangle decrese_button_rec = {
     .x = rec.x,
     .y = rec.y,
-    .width = 20,
+    .width = 25,
     .height = rec.height,
   };
   Rectangle increase_button_rec = {
-    .x = rec.x + rec.width - 10,
+    .x = rec.x + rec.width - 25,
     .y = rec.y,
-    .width = 20,
+    .width = 25,
     .height = rec.height,
   };
 
-  DrawRectangleRec(rec, WHITE);
-  DrawButton(decrese_button_rec, "<", decrease_spinner_value, value);
+  DrawRectangleRec(rec, RAYWHITE);
   DrawCenteredText(rec, label);
+  DrawButton(decrese_button_rec, "<", decrease_spinner_value, value);
   DrawButton(increase_button_rec, ">", increase_spinner_value, value);
   *value = Clamp(*value, lower_limit, upper_limit);
 }
