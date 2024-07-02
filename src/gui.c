@@ -35,16 +35,13 @@ void DrawCenteredText(Rectangle rec, const char *label) {
 void increase_spinner_value(void *value) { *(int*)value += 1; }
 void decrease_spinner_value(void *value) { *(int*)value -= 1; }
 
-void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, const char *provided_label, SpinnerLabelMode mode) {
-  const char *label;
-  if (mode == SPINNER_LABEL_VALUE) {
+void DrawSpinnerValue(Rectangle rec, int *value, int lower_limit, int upper_limit) {
     char value_label[20];
     sprintf(value_label, "%d", *value);
-    label = value_label;
-  } else if (mode == SPINNER_LABEL_PROVIDED) {
-    label = provided_label;
-  }
+    DrawSpinner(rec, value, lower_limit, upper_limit, value_label);
+}
 
+void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, const char *label) {
   Rectangle decrese_button_rec = {
     .x = rec.x,
     .y = rec.y,
@@ -62,6 +59,5 @@ void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, co
   DrawButton(decrese_button_rec, "<", decrease_spinner_value, value);
   DrawCenteredText(rec, label);
   DrawButton(increase_button_rec, ">", increase_spinner_value, value);
-
   *value = Clamp(*value, lower_limit, upper_limit);
 }

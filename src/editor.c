@@ -63,8 +63,7 @@ void draw_gui(MapEditor *editor) {
     break;
   }
 
-  DrawSpinner((Rectangle){10, 500, 60, 30}, &editor->layer, 0, 2, label,
-                SPINNER_LABEL_PROVIDED);
+  DrawSpinner((Rectangle){10, 500, 60, 30}, &editor->layer, 0, 2, label);
 }
 
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
