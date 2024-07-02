@@ -62,6 +62,7 @@ void game_run(Game *game) {
     .current_tile = 1,
     .camera = editor_camera,
     .map = &game->map,
+    .layer = LAYER_WALL,
   };
   game->editor = editor;
   while (!WindowShouldClose()) {
