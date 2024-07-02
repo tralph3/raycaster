@@ -8,6 +8,8 @@ TextureArr load_all_textures(void) {
     TextureArr texture_arr = {0};
     da_append(&texture_arr, LoadTexture("./assets/textures/empty.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/eagle.png"));
+    da_append(&texture_arr, LoadTexture("./assets/textures/warning_tape.png"));
+    da_append(&texture_arr, LoadTexture("./assets/textures/floor_tile.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/redbrick.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/purplestone.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/greystone.png"));
@@ -18,7 +20,6 @@ TextureArr load_all_textures(void) {
     da_append(&texture_arr, LoadTexture("./assets/textures/barrel.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/pillar.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/greenlight.png"));
-    da_append(&texture_arr, LoadTexture("./assets/textures/warning_tape.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/chase.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/bullet_decal.png"));
     return texture_arr;
