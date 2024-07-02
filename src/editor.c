@@ -6,12 +6,36 @@
 #include <stdio.h>
 #include <raylib.h>
 
-void draw_map_tile(Renderer *renderer, Vector2 position, MapTile *tile) {
-  Texture2D tile_texture = get_texture(&renderer->textures, tile->wall_id);
-  Rectangle source = {0, 0, tile_texture.width, tile_texture.height};
-  Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
-  if(tile->type == TILE_TYPE_WALL)
-    DrawTexturePro(tile_texture, source, destination, Vector2Zero(), 0, WHITE);
+void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
+  Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id);
+  Texture2D ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id);
+  Texture2D floor_texture = get_texture(&renderer->textures, tile->floor_id);
+
+
+  if (editor->layer == LAYER_FLOOR || tile->type != TILE_TYPE_WALL) {
+    Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
+    Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE,
+                             TILE_SIZE, TILE_SIZE};
+    Color color = WHITE;
+    if (editor->layer == LAYER_CEILING) color = ColorBrightness(color, -0.5f);
+    else if (editor->layer == LAYER_WALL) color = ColorBrightness(color, -0.2f);
+    DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, color);
+  }
+
+  if (tile->type == TILE_TYPE_WALL && editor->layer > LAYER_FLOOR) {
+    Rectangle source = {0, 0, wall_texture.width, wall_texture.height};
+    Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
+    Color color = WHITE;
+    if (editor->layer == LAYER_CEILING) color = ColorBrightness(color, -0.2f);
+    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, color);
+  }
+
+    Rectangle source = {0, 0, ceiling_texture.width, ceiling_texture.height};
+    Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE,
+                             TILE_SIZE, TILE_SIZE};
+    Color color = WHITE;
+    if (editor->layer != LAYER_CEILING) color = ColorAlpha(color, 0.05);
+    DrawTexturePro(ceiling_texture, source, destination, Vector2Zero(), 0, color);
 }
 
 void draw_current_tile(Renderer *renderer, MapEditor *editor) {
@@ -22,7 +46,23 @@ void draw_current_tile(Renderer *renderer, MapEditor *editor) {
 }
 
 void draw_gui(MapEditor *editor) {
-  DrawSpinner((Rectangle){10, 500, 60, 30}, &editor->current_tile);
+  const char *label;
+  switch (editor->layer){
+  case LAYER_WALL:
+    label = "WALL";
+    break;
+  case LAYER_CEILING:
+    label = "CEILING";
+    break;
+  case LAYER_FLOOR:
+    label = "FLOOR";
+    break;
+  default:
+    break;
+  }
+
+  DrawSpinner((Rectangle){10, 500, 60, 30}, &editor->layer, 0, 2, label,
+                SPINNER_LABEL_PROVIDED);
 }
 
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
@@ -34,7 +74,7 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
     for (unsigned int y = 0; y <  editor->map->size / editor->map->width; ++y) {
       Vector2 position = {x, y};
       MapTile map_tile = get_tile_at_point(editor->map, position);
-      draw_map_tile(renderer, (Vector2){x, y}, &map_tile);
+      draw_map_tile(editor, renderer, (Vector2){x, y}, &map_tile);
     }
   }
   EndMode2D();
@@ -44,12 +84,18 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
 
 void place_tile(Vector2 position, MapEditor *editor) {
   if (!is_in_bounds(editor->map, position)) return;
-  MapTile tile = {0};
-  tile.wall_id = editor->current_tile;
-  if (tile.wall_id == 1)
-    tile.type = TILE_TYPE_EMPTY;
-  else
+  MapTile tile = get_tile_at_point(editor->map, position);
+  if (editor->layer == LAYER_WALL)
+    tile.wall_id = editor->current_tile;
+  else if (editor->layer == LAYER_CEILING)
+    tile.ceiling_id = editor->current_tile;
+  else if (editor->layer == LAYER_FLOOR)
+    tile.floor_id = editor->current_tile;
+
+  if (tile.wall_id > 0 && editor->layer == LAYER_WALL)
     tile.type = TILE_TYPE_WALL;
+  else if (tile.wall_id == 0)
+    tile.type = TILE_TYPE_EMPTY;
   set_tile_at_point(editor->map, position, tile);
 }
 
@@ -74,7 +120,7 @@ void editor_input(MapEditor *editor) {
     Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE,
                             mouse_pos_in_world.y / TILE_SIZE};
     int prev_tile = editor->current_tile;
-    editor->current_tile = 1;
+    editor->current_tile = 0;
     place_tile(pointed_tile, editor);
     editor->current_tile = prev_tile;
   }
