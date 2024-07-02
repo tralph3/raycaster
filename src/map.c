@@ -34,11 +34,15 @@ void save_map(Map *map, char *path) {
 }
 
 inline MapTile get_tile_at_point(Map *map, Vector2 position) {
-  return map->data[(int)position.x + (int)position.y * map->width];
+  if (!is_in_bounds(map, position))
+    return (MapTile){0, 0, 0, TILE_TYPE_WALL};
+  else
+    return map->data[(int)position.x + (int)position.y * map->width];
 }
 
 inline void set_tile_at_point(Map *map, Vector2 position, MapTile tile) {
-  map->data[(int)position.x + (int)position.y * map->width] = tile;
+  if (is_in_bounds(map, position))
+    map->data[(int)position.x + (int)position.y * map->width] = tile;
 }
 
 inline bool is_in_bounds(Map *map, Vector2 position) {
