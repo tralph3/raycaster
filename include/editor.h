@@ -15,6 +15,7 @@ typedef struct {
 
 void draw_map_tile(Renderer*, Vector2, MapTile*);
 void draw_editor_interface(Renderer*, MapEditor*);
-void editor_input(MapEditor*);
+void editor_input(MapEditor *);
+void draw_gui(MapEditor *);
 
 #endif

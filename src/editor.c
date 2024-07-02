@@ -2,6 +2,8 @@
 #include "renderer.h"
 #include "editor.h"
 #include "textures.h"
+#include "gui.h"
+#include <stdio.h>
 #include <raylib.h>
 
 void draw_map_tile(Renderer *renderer, Vector2 position, MapTile *tile) {
@@ -19,6 +21,10 @@ void draw_current_tile(Renderer *renderer, MapEditor *editor) {
   DrawTexturePro(tile_texture, source, destination, Vector2Zero(), 0, WHITE);
 }
 
+void draw_gui(MapEditor *editor) {
+  DrawSpinner((Rectangle){10, 500, 60, 30}, &editor->current_tile);
+}
+
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
   BeginDrawing();
   draw_current_tile(renderer, editor);
@@ -32,6 +38,7 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
     }
   }
   EndMode2D();
+  draw_gui(editor);
   EndDrawing();
 }
 

@@ -9,15 +9,15 @@
 
 void generate_map(void) {
   MapTile data[81] = {
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){4, 0, 0, 1}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 0, 0, 0}, (MapTile){13, 5, 7, 0}, (MapTile){13, 0, 0, 1},
-    (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 5, 7, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 0, 0, 1}, (MapTile){13, 5, 7, 1}, (MapTile){13, 0, 0, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 0}, (MapTile){2, 0, 3, 1},
+    (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1}, (MapTile){2, 0, 3, 1},
   };
   Map map = {
       .player_start_position = (Vector2){1.5, 1.5},

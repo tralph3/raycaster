@@ -12,7 +12,7 @@ GameState state_editor = {0};
 GameState state_test_map = {0};
 
 Game create_new_game(void) {
-  SetConfigFlags(FLAG_FULLSCREEN_MODE | FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
+  SetConfigFlags(FLAG_FULLSCREEN_MODE | FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
 
   InitWindow(0, 0, "Raycaster");
   InitAudioDevice();
@@ -36,12 +36,6 @@ Game create_new_game(void) {
   };
   Map map = load_map("./assets/maps/test.map");
   SpriteArr sprites = {0};
-  Sprite sprite = {
-      .position = (Vector2){10.5, 6.5},
-      .texture_id = 10,
-  };
-
-  da_append(&sprites, sprite);
   TextureArr textures = load_all_textures();
   Texture2D sky = LoadTexture("./assets/textures/sky.png");
   renderer.textures = textures;
