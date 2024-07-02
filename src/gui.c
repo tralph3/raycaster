@@ -1,6 +1,7 @@
 #include "gui.h"
 #include <raylib.h>
 #include <stdio.h>
+#include <raymath.h>
 
 bool is_mouse_hovering(Rectangle rec) {
   Vector2 mouse_pos = GetMousePosition();
@@ -62,8 +63,5 @@ void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, co
   DrawCenteredText(rec, label);
   DrawButton(increase_button_rec, ">", increase_spinner_value, value);
 
-  if (*value < lower_limit)
-    *value = lower_limit;
-  else if (*value > upper_limit)
-    *value = upper_limit;
+  *value = Clamp(*value, lower_limit, upper_limit);
 }

@@ -1,5 +1,6 @@
 #include <math.h>
 #include <raylib.h>
+#include <raymath.h>
 
 #include "textures.h"
 #include "dynarray.h"
@@ -26,5 +27,5 @@ TextureArr load_all_textures(void) {
 }
 
 inline Texture2D get_texture(TextureArr *texture_arr, TextureID id) {
-  return texture_arr->items[(int)(fmin(fmax(id, 0), texture_arr->count - 1))];
+  return texture_arr->items[(int)Clamp(id, 0, texture_arr->count - 1)];
 }
