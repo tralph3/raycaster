@@ -3,8 +3,10 @@
 #include "editor.h"
 #include "textures.h"
 #include "gui.h"
+#include <raymath.h>
 #include <stdio.h>
 #include <raylib.h>
+#include <rlgl.h>
 
 void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
   Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id);
@@ -102,7 +104,6 @@ void place_tile(Vector2 position, MapEditor *editor) {
 void editor_input(MapEditor *editor) {
   Vector2 mouse_delta = GetMouseDelta();
   Camera2D *camera = &editor->camera;
-  float scroll_wheel_amount = GetMouseWheelMove();
 
   if (IsMouseButtonDown(0)) {
       Vector2 mouse_pos_in_world =
@@ -112,7 +113,7 @@ void editor_input(MapEditor *editor) {
   }
 
   if (IsMouseButtonDown(2))
-    camera->target = Vector2Subtract(camera->target, mouse_delta);
+    camera->target = Vector2Subtract(camera->target, Vector2Scale(mouse_delta, 1/(camera->zoom)));
 
   if (IsMouseButtonDown(1)) {
     Vector2 mouse_pos_in_world =
@@ -125,8 +126,15 @@ void editor_input(MapEditor *editor) {
     editor->current_tile = prev_tile;
   }
 
-  if (scroll_wheel_amount != 0)
-    camera->zoom += scroll_wheel_amount * 0.1;
+  float scroll_wheel_amount = GetMouseWheelMove();
+  if (scroll_wheel_amount != 0) {
+    Vector2 mouse_world_position = GetScreenToWorld2D(GetMousePosition(), *camera);
+    camera->offset = GetMousePosition();
+    camera->target = mouse_world_position;
+    float scale_factor = 1.0f + (0.25f*fabsf(scroll_wheel_amount));
+    if (scroll_wheel_amount < 0) scale_factor = 1.0f/scale_factor;
+    camera->zoom = Clamp(camera->zoom*scale_factor, 0.125f, 64.0f);
+  }
 
   for (char i = 1; i < 10; ++i) {
     if (IsKeyPressed(i + 48))
