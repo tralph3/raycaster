@@ -7,10 +7,10 @@
 TextureArr load_all_textures(void) {
     TextureArr texture_arr = {0};
     da_append(&texture_arr, LoadTexture("./assets/textures/empty.png"));
-    da_append(&texture_arr, LoadTexture("./assets/textures/eagle.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/warning_tape.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/floor_tile.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/redbrick.png"));
+    da_append(&texture_arr, LoadTexture("./assets/textures/eagle.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/purplestone.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/greystone.png"));
     da_append(&texture_arr, LoadTexture("./assets/textures/bluestone.png"));
