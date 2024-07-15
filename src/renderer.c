@@ -9,11 +9,14 @@
 #include <stdio.h>
 
 #define VISIBLE_TILE_MAX 1000
+
 Vector2 visible_tiles[VISIBLE_TILE_MAX];
+Vector2 visible_floor_tiles[VISIBLE_TILE_MAX];
 int visible_tile_index = 0;
+int visible_floor_tile_index = 0;
 
 void print_vector(Vector2 v) {
-    printf("X: %f | Y: %f\n", v.x, v.y);
+  printf("X: %f | Y: %f\n", v.x, v.y);
 }
 
 Vector2 cast_ray(Renderer *renderer, int ray, Player *player, Map *map) {
@@ -60,47 +63,60 @@ Vector2 cast_ray(Renderer *renderer, int ray, Player *player, Map *map) {
     }
 
     world_tile = get_tile_at_point(map, map_pos);
-    if (world_tile.type == TILE_TYPE_WALL)
+    if (world_tile.type == TILE_TYPE_WALL) {
       hit = true;
+    } else {
+      bool tile_was_previously_seen = false;
+      for (int i = 0; i < visible_floor_tile_index; ++i) {
+        if (visible_floor_tiles[i].x == map_pos.x && visible_floor_tiles[i].y == map_pos.y) {
+          tile_was_previously_seen = true;
+          break;
+        }
+      }
+      if (!tile_was_previously_seen) {
+        visible_floor_tiles[visible_floor_tile_index] = map_pos;
+        ++visible_floor_tile_index;
+      }
+    }
   }
   return map_pos;
 }
+
 void calculate_visible_walls(Renderer *renderer, Player *player, Map *map) {
   bool stop_casting = false;
   int ray1 = 0;
+  visible_floor_tiles[visible_floor_tile_index] = (Vector2){(int)player->position.x, (int)player->position.y};
+  ++visible_floor_tile_index;
   while (!stop_casting) {
     if (visible_tile_index >= VISIBLE_TILE_MAX) {
       stop_casting = true;
       continue;
     }
-      bool different_tiles = true;
-      int ray2 = renderer->render_width;
-      Vector2 tile1 = cast_ray(renderer, ray1, player, map);
-      while (different_tiles) {
-        if (visible_tiles[visible_tile_index - 1].x == tile1.x &&
-            visible_tiles[visible_tile_index - 1].y == tile1.y &&
-            visible_tile_index > 0) {
-          ++ray1;
-          tile1 = cast_ray(renderer, ray1, player, map);
-          continue;
-        }
-        Vector2 tile2 = cast_ray(renderer, ray2, player, map);
-        if (tile1.x == tile2.x && tile1.y == tile2.y) {
-          different_tiles = false;
-          visible_tiles[visible_tile_index] = tile1;
-          visible_tile_index++;
-          if (ray2 == renderer->render_width) {
-            stop_casting = true;
-          } else {
-            ray1 = ray2 + 1;
-          }
-        } else {
-          ray2 = fmax(floor(ray2 / 2.f), ray1);
-        }
+    bool different_tiles = true;
+    int ray2 = renderer->render_width;
+    Vector2 tile1 = cast_ray(renderer, ray1, player, map);
+    while (different_tiles) {
+      if (visible_tiles[visible_tile_index - 1].x == tile1.x &&
+          visible_tiles[visible_tile_index - 1].y == tile1.y &&
+          visible_tile_index > 0) {
+        ++ray1;
+        tile1 = cast_ray(renderer, ray1, player, map);
+        continue;
+      }
+      Vector2 tile2 = cast_ray(renderer, ray2, player, map);
+      if (tile1.x == tile2.x && tile1.y == tile2.y) {
+        different_tiles = false;
+        visible_tiles[visible_tile_index] = tile1;
+        visible_tile_index++;
+        if (ray2 == renderer->render_width)
+          stop_casting = true;
+        else
+          ray1 = ray2 + 1;
+      } else {
+        ray2 = fmax(floor(ray2 / 2.f), ray1);
       }
     }
-
-
+  }
 }
 
 void draw_sprites(Renderer *renderer, Camera *camera) {
@@ -228,6 +244,7 @@ void draw_decal(Vector2 position, Game *game) {
 
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
   visible_tile_index = 0;
+  visible_floor_tile_index = 0;
   BeginDrawing();
   ClearBackground(BLACK);
   /* DrawTexturePro(game->sky, */
@@ -239,18 +256,12 @@ void draw_everything(Renderer *renderer, Player *player, Map *map) {
   rlBegin(RL_QUADS);
   rlColor4ub(255, 255, 255, 255);
   calculate_visible_walls(renderer, player, map);
-  // TODO calculate visible floor and ceiling tiles as well instead of
-  // drawing them all every time. This can get slow for very large
-  // maps!!
-  for (unsigned int x = 0; x < map->width; ++x) {
-    for (unsigned int y = 0; y <  map->size / map->width; ++y) {
-      draw_floor_cell((Vector2){x, y}, renderer, map);
-      draw_ceiling_cell((Vector2){x, y}, renderer, map);
-    }
+  for (int i = 0; i < visible_floor_tile_index; ++i) {
+    draw_floor_cell(visible_floor_tiles[i], renderer, map);
+    draw_ceiling_cell(visible_floor_tiles[i], renderer, map);
   }
-  for (int i = 0; i < visible_tile_index; ++i) {
+  for (int i = 0; i < visible_tile_index; ++i)
     draw_wall_cell(visible_tiles[i], renderer, map);
-  }
   draw_sprites(renderer, &player->camera);
   rlEnd();
   EndMode3D();
