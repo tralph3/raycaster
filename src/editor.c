@@ -4,15 +4,15 @@
 #include "textures.h"
 #include "gui.h"
 #include <raymath.h>
-#include <stdio.h>
 #include <raylib.h>
 #include <rlgl.h>
+
+#include <stdio.h>
 
 void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
   Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id);
   Texture2D ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id);
   Texture2D floor_texture = get_texture(&renderer->textures, tile->floor_id);
-
 
   if (editor->layer == LAYER_FLOOR || tile->type != TILE_TYPE_WALL) {
     Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
@@ -48,22 +48,28 @@ void draw_current_tile(Renderer *renderer, MapEditor *editor) {
 }
 
 void draw_gui(MapEditor *editor, Renderer *renderer) {
-  const char *label;
+  const char *layer_label;
   switch (editor->layer){
   case LAYER_WALL:
-    label = "WALL";
+    layer_label = "WALL";
     break;
   case LAYER_CEILING:
-    label = "CEILING";
+    layer_label = "CEILING";
     break;
   case LAYER_FLOOR:
-    label = "FLOOR";
+    layer_label = "FLOOR";
     break;
   default:
     break;
   }
 
-  GUISpinnerValueLabel((Rectangle){10, renderer->screen_height - 50, 160, 40}, &editor->layer, 0, 2, label);
+  int map_width = editor->map->width;
+  int map_height = editor->map->size / editor->map->width;
+
+  GUISpinnerValueLabel((Rectangle){10, renderer->screen_height - 50, 160, 40}, &editor->layer, 0, 2, layer_label);
+  GUISpinnerValue((Rectangle){200, renderer->screen_height - 50, 160, 40}, &map_width, 1, 1000);
+  GUISpinnerValue((Rectangle){390, renderer->screen_height - 50, 160, 40}, &map_height, 1, 1000);
+  resize_map(editor->map, map_width, map_height);
 }
 
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
@@ -71,13 +77,16 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
   draw_current_tile(renderer, editor);
   ClearBackground(BLACK);
   BeginMode2D(editor->camera);
-  for (unsigned int x = 0; x < editor->map->width; ++x) {
-    for (unsigned int y = 0; y <  editor->map->size / editor->map->width; ++y) {
+  unsigned int map_width = editor->map->width;
+  unsigned int map_height = editor->map->size / editor->map->width;
+  for (unsigned int x = 0; x < map_width; ++x) {
+    for (unsigned int y = 0; y < map_height; ++y) {
       Vector2 position = {x, y};
       MapTile map_tile = get_tile_at_point(editor->map, position);
       draw_map_tile(editor, renderer, (Vector2){x, y}, &map_tile);
     }
   }
+  DrawRectangleLinesEx((Rectangle){0,0, map_width * TILE_SIZE, map_height * TILE_SIZE}, 2, WHITE);
   EndMode2D();
   draw_gui(editor, renderer);
   EndDrawing();

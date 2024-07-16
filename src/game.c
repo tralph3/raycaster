@@ -20,15 +20,12 @@ Game create_new_game(void) {
   InitWindow(0, 0, "Raycaster");
   InitAudioDevice();
   state_play.loop = state_play_loop;
-  state_play.change_state = false;
   state_play.next_state = NULL;
 
   state_editor.loop = state_editor_loop;
-  state_editor.change_state = false;
   state_editor.next_state = &state_test_map;
 
   state_test_map.loop = state_test_map_loop;
-  state_test_map.change_state = false;
   state_test_map.next_state = &state_editor;
 
   int current_monitor = GetCurrentMonitor();

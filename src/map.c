@@ -2,6 +2,7 @@
 #include <raymath.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 Map load_map(char *path) {
   Map map = {0};
@@ -31,6 +32,25 @@ void save_map(Map *map, char *path) {
   fwrite(map, sizeof(int) * 3 + sizeof(Vector2), 1, fp);
   fwrite(map->data, sizeof(MapTile), map->size, fp);
   fclose(fp);
+}
+
+void resize_map(Map *map, unsigned int new_width, unsigned int new_height) {
+  unsigned int new_size = new_width * new_height;
+  if (new_size == map->size) return;
+  MapTile *new_map_data = malloc(new_size * sizeof(MapTile));
+  for (unsigned int y = 0; y < new_height; ++y) {
+    for (unsigned int x = 0; x < new_width; ++x) {
+      Vector2 map_pos = {x,y};
+      MapTile tile = get_tile_at_point(map, map_pos);
+      if (!is_in_bounds(map, map_pos))
+        tile = (MapTile){0};
+      new_map_data[x + y * new_width] = tile;
+    }
+  }
+  free(map->data);
+  map->size = new_size;
+  map->width = new_width;
+  map->data = new_map_data;
 }
 
 inline MapTile get_tile_at_point(Map *map, Vector2 position) {
