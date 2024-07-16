@@ -46,6 +46,7 @@ Game create_new_game(void) {
   renderer.sprites = sprites;
   float aspect_ratio = (float)renderer.render_width / renderer.render_height;
   gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
+  gui_settings.main_background = BLUE;
   Game game = {
       .map = map,
       .current_state = state_editor,
