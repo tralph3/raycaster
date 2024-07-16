@@ -6,6 +6,7 @@
 
 typedef struct {
   Font font;
+  Color main_background;
 } GUISettings;
 
 extern GUISettings gui_settings;
@@ -17,6 +18,7 @@ void DrawCenteredText(Rectangle, const char *);
 void increase_spinner_value(void *);
 void decrease_spinner_value(void *);
 void GUISpinnerValue(Rectangle, int *, int, int);
-void GUISpinner(Rectangle, int *, int, int, const char *);
+void GUISpinnerValueLabel(Rectangle , int *, int, int, const char *);
+short GUISpinner(Rectangle, const char *);
 
 #endif

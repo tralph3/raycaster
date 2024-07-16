@@ -18,7 +18,7 @@ bool is_button_clicked(Rectangle rec) {
 }
 
 bool GUIButton(Rectangle rec, const char *label) {
-  Color background = RAYWHITE;
+  Color background = gui_settings.main_background;
   if (is_mouse_hovering(rec) && !IsMouseButtonDown(0))
     background = ColorBrightness(background, -0.1f);
   DrawRectangleRec(rec, background);
@@ -41,10 +41,18 @@ void DrawCenteredText(Rectangle rec, const char *label) {
 void GUISpinnerValue(Rectangle rec, int *value, int lower_limit, int upper_limit) {
     char value_label[20];
     sprintf(value_label, "%d", *value);
-    GUISpinner(rec, value, lower_limit, upper_limit, value_label);
+    short increment = GUISpinner(rec, value_label);
+    *value += increment;
+    *value = Clamp(*value, lower_limit, upper_limit);
 }
 
-void GUISpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, const char *label) {
+void GUISpinnerValueLabel(Rectangle rec, int *value, int lower_limit, int upper_limit, const char *label) {
+    short increment = GUISpinner(rec, label);
+    *value += increment;
+    *value = Clamp(*value, lower_limit, upper_limit);
+}
+
+short GUISpinner(Rectangle rec, const char *label) {
   Rectangle decrese_button_rec = {
     .x = rec.x,
     .y = rec.y,
@@ -58,11 +66,18 @@ void GUISpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, con
     .height = rec.height,
   };
 
-  DrawRectangleRec(rec, RAYWHITE);
+  DrawRectangleRec(rec, gui_settings.main_background);
   DrawCenteredText(rec, label);
-  if (GUIButton(decrese_button_rec, "<"))
-    *value -= 1;
-  if (GUIButton(increase_button_rec, ">"))
-    *value += 1;
-  *value = Clamp(*value, lower_limit, upper_limit);
+
+  // if you check for the return value of the button inside the if
+  // statement, then pressing the first button makes the function
+  // immediately return, and the second one will not be drawn for one
+  // frame
+  bool decrease = GUIButton(decrese_button_rec, "<");
+  bool increase = GUIButton(increase_button_rec, ">");
+  if (decrease)
+    return -1;
+  if (increase)
+    return 1;
+  return 0;
 }

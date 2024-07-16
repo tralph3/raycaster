@@ -63,7 +63,7 @@ void draw_gui(MapEditor *editor, Renderer *renderer) {
     break;
   }
 
-  GUISpinner((Rectangle){10, renderer->screen_height - 50, 160, 40}, &editor->layer, 0, 2, label);
+  GUISpinnerValueLabel((Rectangle){10, renderer->screen_height - 50, 160, 40}, &editor->layer, 0, 2, label);
 }
 
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
