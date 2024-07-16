@@ -4,7 +4,6 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <rlgl.h>
-#include "game.h"
 
 #include <stdio.h>
 
@@ -208,7 +207,6 @@ void draw_wall_cell(Vector2 position, Renderer *renderer, Map *map) {
   rlTexCoord2f(1, 0);
   rlVertex3f(position.x + 1, 1, position.y);
 
-
   // BACK SIDE QUAD
   rlTexCoord2f(0, 0);
   rlVertex3f(position.x + 1, 1, position.y);
@@ -223,24 +221,24 @@ void draw_wall_cell(Vector2 position, Renderer *renderer, Map *map) {
   rlVertex3f(position.x, 1, position.y);
 }
 
-void draw_decal(Vector2 position, Game *game) {
-  Texture2D decal = get_texture(&game->textures,11);
-  rlSetTexture(decal.id);
-  float scale = 0.007;
-  float scaled_width = decal.width * scale;
-  float scaled_height = decal.height * scale;
-  rlTexCoord2f(0, 0);
-  rlVertex3f(position.x, 0.5 + (scaled_height / 2), position.y + 1.0005);
+/* void draw_decal(Vector2 position, Game *game) { */
+/*   Texture2D decal = get_texture(&game->textures,11); */
+/*   rlSetTexture(decal.id); */
+/*   float scale = 0.007; */
+/*   float scaled_width = decal.width * scale; */
+/*   float scaled_height = decal.height * scale; */
+/*   rlTexCoord2f(0, 0); */
+/*   rlVertex3f(position.x, 0.5 + (scaled_height / 2), position.y + 1.0005); */
 
-  rlTexCoord2f(0, 1);
-  rlVertex3f(position.x, 0.5 - (scaled_height / 2), position.y + 1.0005);
+/*   rlTexCoord2f(0, 1); */
+/*   rlVertex3f(position.x, 0.5 - (scaled_height / 2), position.y + 1.0005); */
 
-  rlTexCoord2f(1, 1);
-  rlVertex3f(position.x + scaled_width, 0.5 - (scaled_height / 2), position.y + 1.0005);
+/*   rlTexCoord2f(1, 1); */
+/*   rlVertex3f(position.x + scaled_width, 0.5 - (scaled_height / 2), position.y + 1.0005); */
 
-  rlTexCoord2f(1, 0);
-  rlVertex3f(position.x + scaled_width, 0.5 + (scaled_height / 2), position.y + 1.0005);
-}
+/*   rlTexCoord2f(1, 0); */
+/*   rlVertex3f(position.x + scaled_width, 0.5 + (scaled_height / 2), position.y + 1.0005); */
+/* } */
 
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
   visible_tile_index = 0;
