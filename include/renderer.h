@@ -8,6 +8,13 @@
 #include "textures.h"
 
 typedef struct {
+  int min;
+  int max;
+} RayPair;
+
+extern RayPair *pending_casts;
+
+typedef struct {
   int render_width;
   int render_height;
   int screen_width;

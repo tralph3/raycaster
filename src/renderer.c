@@ -7,12 +7,13 @@
 
 #include <stdio.h>
 
-#define VISIBLE_TILE_MAX 1000
+#define VISIBLE_TILE_MAX 100000
 
 Vector2 visible_tiles[VISIBLE_TILE_MAX];
 Vector2 visible_floor_tiles[VISIBLE_TILE_MAX];
 int visible_tile_index = 0;
 int visible_floor_tile_index = 0;
+RayPair *pending_casts;
 
 void print_vector(Vector2 v) {
   printf("X: %f | Y: %f\n", v.x, v.y);
@@ -25,7 +26,6 @@ Vector2 cast_ray(Renderer *renderer, int ray, Player *player, Map *map) {
   int step_x;
   int step_y;
   bool hit = false;
-
 
   double camera_x = (ray << 1) / (double)renderer->render_width - 1;
   Vector2 ray_dir = Vector2Add(
@@ -82,41 +82,31 @@ Vector2 cast_ray(Renderer *renderer, int ray, Player *player, Map *map) {
 }
 
 void calculate_visible_walls(Renderer *renderer, Player *player, Map *map) {
-  bool stop_casting = false;
-  int ray1 = 0;
   visible_floor_tiles[visible_floor_tile_index] = (Vector2){(int)player->position.x, (int)player->position.y};
   ++visible_floor_tile_index;
-  while (!stop_casting) {
-    if (visible_tile_index >= VISIBLE_TILE_MAX) {
-      stop_casting = true;
-      continue;
-    }
-    bool different_tiles = true;
-    int ray2 = renderer->render_width;
-    Vector2 tile1 = cast_ray(renderer, ray1, player, map);
-    while (different_tiles) {
-      if (visible_tiles[visible_tile_index - 1].x == tile1.x &&
-          visible_tiles[visible_tile_index - 1].y == tile1.y &&
-          visible_tile_index > 0) {
-        ++ray1;
-        tile1 = cast_ray(renderer, ray1, player, map);
-        continue;
-      }
-      Vector2 tile2 = cast_ray(renderer, ray2, player, map);
-      if (tile1.x == tile2.x && tile1.y == tile2.y) {
-        different_tiles = false;
-        visible_tiles[visible_tile_index] = tile1;
-        visible_tile_index++;
-        if (ray2 == renderer->render_width)
-          stop_casting = true;
-        else
-          ray1 = ray2 + 1;
-      } else {
-        ray2 = fmax(floor(ray2 / 2.f), ray1);
+  pending_casts[0] = (RayPair){0, renderer->render_width};
+  int pending_cast_index = 0;
+  int pending_cast_count = 1;
+  while (pending_cast_index < pending_cast_count) {
+    RayPair pair = pending_casts[pending_cast_index];
+    Vector2 tile_min = cast_ray(renderer, pair.min, player, map);
+    Vector2 tile_max = cast_ray(renderer, pair.max, player, map);
+    if (tile_min.x == tile_max.x && tile_min.y == tile_max.y) {
+      visible_tiles[visible_tile_index] = tile_min;
+      ++visible_tile_index;
+    } else {
+      if (pair.max - pair.min > 1) {
+        int bisector = ((pair.max - pair.min) / 2) + pair.min;
+        if (pair.min != bisector)
+          pending_casts[pending_cast_count++] = (RayPair){pair.min, bisector};
+        if (pair.max != bisector)
+          pending_casts[pending_cast_count++] = (RayPair){bisector, pair.max};
       }
     }
+    ++pending_cast_index;
   }
 }
+
 
 void draw_sprites(Renderer *renderer, Camera *camera) {
   for (int i = 0; i < renderer->sprites.count; ++i) {

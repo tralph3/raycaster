@@ -9,6 +9,7 @@
 #include "editor.h"
 #include <raylib.h>
 #include <stdlib.h>
+#include <string.h>
 
 GameState state_play = {0};
 GameState state_editor = {0};
@@ -35,6 +36,7 @@ Game create_new_game(void) {
     .screen_width = GetMonitorWidth(current_monitor),
     .screen_height = GetMonitorHeight(current_monitor),
   };
+  pending_casts = malloc(renderer.render_width * sizeof(RayPair));
   Map map = load_map("./assets/maps/test.map");
   SpriteArr sprites = {0};
   TextureArr textures = load_all_textures();

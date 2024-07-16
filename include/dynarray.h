@@ -4,6 +4,12 @@
 #include <assert.h>
 #include <stdlib.h>
 
+typedef struct {
+  unsigned int capacity;
+  unsigned int count;
+  void *items;
+} DynArray;
+
 #define DA_INIT_CAP 256
 
 #define da_last(da) (assert((da)->count > 0), (da)->items[(da)->count - 1])
