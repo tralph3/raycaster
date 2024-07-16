@@ -4,9 +4,11 @@
 #include "renderer.h"
 #include "player.h"
 #include "textures.h"
-#include "dynarray.h"
+#include "input.h"
+#include "physics.h"
 #include "editor.h"
 #include <raylib.h>
+#include <stdlib.h>
 
 GameState state_play = {0};
 GameState state_editor = {0};
@@ -29,11 +31,12 @@ Game create_new_game(void) {
   state_test_map.change_state = false;
   state_test_map.next_state = &state_editor;
 
+  int current_monitor = GetCurrentMonitor();
   Renderer renderer = {
-    .render_width = GetMonitorWidth(GetCurrentMonitor()),
-    .render_height = GetMonitorHeight(GetCurrentMonitor()),
-    .screen_width = GetMonitorWidth(GetCurrentMonitor()),
-    .screen_height = GetMonitorHeight(GetCurrentMonitor()),
+    .render_width = GetMonitorWidth(current_monitor),
+    .render_height = GetMonitorHeight(current_monitor),
+    .screen_width = GetMonitorWidth(current_monitor),
+    .screen_height = GetMonitorHeight(current_monitor),
   };
   Map map = load_map("./assets/maps/test.map");
   SpriteArr sprites = {0};
