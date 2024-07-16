@@ -5,10 +5,7 @@
 #include "textures.h"
 #include "map.h"
 #include "player.h"
-#include "input.h"
-#include "physics.h"
 #include "editor.h"
-#include <stdlib.h>
 #include <raylib.h>
 
 typedef struct Game Game;
