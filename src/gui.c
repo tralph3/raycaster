@@ -17,14 +17,13 @@ bool is_button_clicked(Rectangle rec) {
   return is_mouse_hovering(rec) && IsMouseButtonPressed(0);
 }
 
-void DrawButton(Rectangle rec, const char *label, void (*callback)(void *), void *callback_args) {
+bool GUIButton(Rectangle rec, const char *label) {
   Color background = RAYWHITE;
   if (is_mouse_hovering(rec) && !IsMouseButtonDown(0))
     background = ColorBrightness(background, -0.1f);
   DrawRectangleRec(rec, background);
   DrawCenteredText(rec, label);
-  if (is_button_clicked(rec))
-    callback(callback_args);
+  return is_button_clicked(rec);
 }
 
 void DrawCenteredText(Rectangle rec, const char *label) {
@@ -39,16 +38,13 @@ void DrawCenteredText(Rectangle rec, const char *label) {
 }
 
 
-void increase_spinner_value(void *value) { *(int*)value += 1; }
-void decrease_spinner_value(void *value) { *(int*)value -= 1; }
-
-void DrawSpinnerValue(Rectangle rec, int *value, int lower_limit, int upper_limit) {
+void GUISpinnerValue(Rectangle rec, int *value, int lower_limit, int upper_limit) {
     char value_label[20];
     sprintf(value_label, "%d", *value);
-    DrawSpinner(rec, value, lower_limit, upper_limit, value_label);
+    GUISpinner(rec, value, lower_limit, upper_limit, value_label);
 }
 
-void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, const char *label) {
+void GUISpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, const char *label) {
   Rectangle decrese_button_rec = {
     .x = rec.x,
     .y = rec.y,
@@ -64,7 +60,9 @@ void DrawSpinner(Rectangle rec, int *value, int lower_limit, int upper_limit, co
 
   DrawRectangleRec(rec, RAYWHITE);
   DrawCenteredText(rec, label);
-  DrawButton(decrese_button_rec, "<", decrease_spinner_value, value);
-  DrawButton(increase_button_rec, ">", increase_spinner_value, value);
+  if (GUIButton(decrese_button_rec, "<"))
+    *value -= 1;
+  if (GUIButton(increase_button_rec, ">"))
+    *value += 1;
   *value = Clamp(*value, lower_limit, upper_limit);
 }
