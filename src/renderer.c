@@ -107,7 +107,6 @@ void calculate_visible_walls(Renderer *renderer, Player *player, Map *map) {
   }
 }
 
-
 void draw_sprites(Renderer *renderer, Camera *camera) {
   for (int i = 0; i < renderer->sprites.count; ++i) {
     Sprite *sprite = &renderer->sprites.items[i];
