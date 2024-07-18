@@ -36,7 +36,10 @@ Game create_new_game(void) {
     .screen_width = GetMonitorWidth(current_monitor),
     .screen_height = GetMonitorHeight(current_monitor),
   };
-  pending_casts = malloc(renderer.render_width * sizeof(RayPair));
+  Texture2D render_texture = LoadRenderTexture(renderer.render_width, renderer.render_height).texture;
+  renderer.render_texture = render_texture;
+  renderer.screen_buffer = malloc(renderer.render_width * renderer.render_height * sizeof(Color));
+  init_ray_lengths(&renderer);
   Map map = load_map("./assets/maps/test.map");
   SpriteArr sprites = {0};
   TextureArr textures = load_all_textures();
@@ -47,14 +50,14 @@ Game create_new_game(void) {
   gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
   gui_settings.main_background = BLUE;
   Game game = {
-      .map = map,
-      .current_state = state_editor,
-      .player = create_new_player(map.player_start_position,
-                                  PLAYER_DIRECTION_RIGHT, aspect_ratio),
-      .textures = textures,
-      .sprites = sprites,
-      .sky = sky,
-      .renderer = renderer,
+    .map = map,
+    .current_state = state_editor,
+    .player = create_new_player(map.player_start_position,
+                                PLAYER_DIRECTION_RIGHT, aspect_ratio),
+    .textures = textures,
+    .sprites = sprites,
+    .sky = sky,
+    .renderer = renderer,
   };
   return game;
 }

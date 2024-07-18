@@ -10,9 +10,9 @@
 #include <stdio.h>
 
 void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
-  Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id);
-  Texture2D ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id);
-  Texture2D floor_texture = get_texture(&renderer->textures, tile->floor_id);
+  Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id).texture;
+  Texture2D ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id).texture;
+  Texture2D floor_texture = get_texture(&renderer->textures, tile->floor_id).texture;
 
   if (editor->layer == LAYER_FLOOR || tile->type != TILE_TYPE_WALL) {
     Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
@@ -41,7 +41,7 @@ void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapT
 }
 
 void draw_current_tile(Renderer *renderer, MapEditor *editor) {
-  Texture2D tile_texture = get_texture(&renderer->textures, editor->current_tile);
+  Texture2D tile_texture = get_texture(&renderer->textures, editor->current_tile).texture;
   Rectangle source = {0, 0, tile_texture.width, tile_texture.height};
   Rectangle destination = {renderer->screen_width - TILE_SIZE * 5 - 10, renderer->render_height - TILE_SIZE * 5 - 10, TILE_SIZE * 5, TILE_SIZE * 5};
   DrawTexturePro(tile_texture, source, destination, Vector2Zero(), 0, WHITE);

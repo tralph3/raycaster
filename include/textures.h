@@ -3,9 +3,14 @@
 #include <raylib.h>
 
 typedef struct {
+  Texture2D texture;
+  Color *pixels;
+} TexturePixels;
+
+typedef struct {
     int count;
     int capacity;
-    Texture2D *items;
+    TexturePixels *items;
 } TextureArr;
 
 typedef unsigned char TextureID;
@@ -22,6 +27,8 @@ typedef struct {
 } SpriteArr;
 
 TextureArr load_all_textures(void);
-Texture2D get_texture(TextureArr*, TextureID);
+TexturePixels load_texture(const char*);
+TexturePixels get_texture(TextureArr*, TextureID);
+Color get_texture_pixel(TexturePixels, int, int);
 
 #endif

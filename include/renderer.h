@@ -12,8 +12,6 @@ typedef struct {
   int max;
 } RayPair;
 
-extern RayPair *pending_casts;
-
 typedef struct {
   int render_width;
   int render_height;
@@ -21,16 +19,16 @@ typedef struct {
   int screen_height;
   TextureArr textures;
   SpriteArr sprites;
+  Texture2D render_texture;
+  Color *screen_buffer;
 } Renderer;
 
-void print_vector(Vector2);
 void sort_sprites(Player*, SpriteArr*);
-void calculate_visible_walls(Renderer *, Player *, Map *);
+void *draw_stripe(void*);
+void draw_world(Renderer *, Player *, Map *);
 void draw_everything(Renderer *, Player *, Map *);
 void draw_sprites(Renderer *, Camera *);
-Vector2 cast_ray(Renderer*, int, Player *, Map *);
-void draw_floor_cell(Vector2, Renderer *, Map *);
-void draw_ceiling_cell(Vector2, Renderer *, Map *);
-void draw_wall_cell(Vector2, Renderer *, Map *);
+void init_ray_lengths(Renderer *);
+void draw_pixel(Renderer *, int, int, Color, Color);
 
 #endif
