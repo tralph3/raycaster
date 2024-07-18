@@ -34,7 +34,7 @@ inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint
 }
 
 void init_ray_lengths(Renderer *renderer) {
-  ray_lengths = malloc(renderer->screen_height * sizeof(float));
+  ray_lengths = malloc(renderer->render_height * sizeof(float));
   for (int y = renderer->render_height / 2.f; y < renderer->render_height; ++y) {
     float ray_angle = atan(y - renderer->render_height / 2.f);
     ray_lengths[y] = (renderer->render_height / 2.f) / tan(ray_angle);
@@ -144,7 +144,7 @@ void *draw_stripe(void *void_args) {
 
     float draw_start = -line_height / 2.f + renderer->render_height / 2.f;
     int y_start = fmaxf(0, draw_start);
-    int y_end = fminf(draw_start + line_height, renderer->screen_height);
+    int y_end = fminf(draw_start + line_height, renderer->render_height);
     for (int y = y_start; y < y_end; ++y) {
       float y_percentage = (y - draw_start) / (draw_start + line_height - draw_start);
       int tex_y = y_percentage * wall_texture.texture.height;
