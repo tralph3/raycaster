@@ -69,6 +69,8 @@ void draw_gui(MapEditor *editor, Renderer *renderer) {
   GUISpinnerValueLabel((Rectangle){10, renderer->screen_height - 50, 160, 40}, &editor->layer, 0, 2, layer_label);
   GUISpinnerValue((Rectangle){200, renderer->screen_height - 50, 160, 40}, &map_width, 1, 1000);
   GUISpinnerValue((Rectangle){390, renderer->screen_height - 50, 160, 40}, &map_height, 1, 1000);
+  if (GUIButton((Rectangle){10, renderer->screen_height - 100, 160, 40}, "Save Map"))
+    save_map(editor->map, "./assets/maps/test.map");
   resize_map(editor->map, map_width, map_height);
 }
 
