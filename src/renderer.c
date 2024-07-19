@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "map.h"
 #include "textures.h"
+#include <math.h>
 #include <raylib.h>
 #include <raymath.h>
 #include <rlgl.h>
@@ -137,26 +138,23 @@ void *draw_stripe(void *void_args) {
     wall_x -= (int)wall_x;
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
     int tex_x = wall_x * wall_texture.texture.width;
-    if (ray_dir.x < 0 && side == SIDE_RIGHT)
-      tex_x = wall_texture.texture.width - tex_x - 1;
-    if (ray_dir.y > 0 && side == SIDE_LEFT)
+    if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
       tex_x = wall_texture.texture.width - tex_x - 1;
 
-    float draw_start = -line_height / 2.f + renderer->render_height / 2.f;
+    float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1;
     int y_start = fmaxf(0, draw_start);
     int y_end = fminf(draw_start + line_height, renderer->render_height);
+    Color tint = WHITE;
+    if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
     for (int y = y_start; y < y_end; ++y) {
       float y_percentage = (y - draw_start) / line_height;
       int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
-      Color tint = WHITE;
-      if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
       draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
     }
   }
   pthread_exit(NULL);
   return NULL;
 }
-
 
 void draw_world(Renderer *renderer, Player *player, Map *map) {
   int offset = renderer->render_width / RENDER_THREAD_COUNT;
@@ -186,9 +184,21 @@ void draw_world(Renderer *renderer, Player *player, Map *map) {
       pthread_join(leftover_thread, NULL);
 }
 
+void draw_skybox(Renderer *renderer, Player *player, Map *map) {
+  Texture2D skybox_texture = get_texture(&renderer->textures, map->skybox).texture;
+  float player_angle = atan2(player->direction.y, player->direction.x);
+  if (player_angle < 0) player_angle += 2*PI;
+  float angle_percentage = player_angle / (2*PI);
+  DrawTexturePro(skybox_texture,
+                 (Rectangle){angle_percentage * skybox_texture.width, 0, skybox_texture.width/4.f, skybox_texture.height},
+                 (Rectangle){0, 0, renderer->render_width, renderer->render_height/2.f},
+                 Vector2Zero(), 0, WHITE);
+}
+
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
   BeginDrawing();
   ClearBackground(BLACK);
+  draw_skybox(renderer, player, map);
   draw_world(renderer, player, map);
   UpdateTexture(renderer->render_texture, renderer->screen_buffer);
   DrawTexturePro(renderer->render_texture, (Rectangle){0, 0, renderer->render_width, renderer->render_height}, (Rectangle){0, 0, renderer->screen_width, renderer->screen_height}, Vector2Zero(), 0, WHITE);

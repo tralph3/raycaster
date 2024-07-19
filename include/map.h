@@ -23,6 +23,7 @@ typedef struct {
   unsigned int size;
   unsigned int width;
   Vector2 player_start_position;
+  TextureID skybox;
   MapTile *data;
 } Map;
 

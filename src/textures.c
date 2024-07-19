@@ -33,6 +33,7 @@ TextureArr load_all_textures(void) {
     da_append(&texture_arr, load_texture("./assets/textures/greenlight.png"));
     da_append(&texture_arr, load_texture("./assets/textures/chase.png"));
     da_append(&texture_arr, load_texture("./assets/textures/bullet_decal.png"));
+    da_append(&texture_arr, load_texture("./assets/textures/sky.png"));
     return texture_arr;
 }
 

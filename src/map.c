@@ -11,7 +11,7 @@ Map load_map(char *path) {
     fprintf(stderr, "ERROR: Error opening file '%s'\n", path);
     exit(1);
   }
-  fread(&map, sizeof(int) * 3 + sizeof(Vector2), 1, fp);
+  fread(&map, sizeof(int) * 3 + sizeof(Vector2) + sizeof(TextureID), 1, fp);
   if (map.size % map.width) {
     fprintf(stderr, "ERROR: Map '%s' is not rectangular\n", path);
     exit(1);
@@ -29,7 +29,7 @@ void save_map(Map *map, char *path) {
     fprintf(stderr, "ERROR: Error opening file '%s'\n", path);
     exit(1);
   }
-  fwrite(map, sizeof(int) * 3 + sizeof(Vector2), 1, fp);
+  fwrite(map, sizeof(int) * 3 + sizeof(Vector2) + sizeof(TextureID), 1, fp);
   fwrite(map->data, sizeof(MapTile), map->size, fp);
   fclose(fp);
 }
