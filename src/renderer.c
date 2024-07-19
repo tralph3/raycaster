@@ -114,8 +114,8 @@ void *draw_stripe(void *void_args) {
       break;
     }
 
-    float line_height = renderer->render_height / perpendicular_wall_dist + 4;
-    float wall_bottom = renderer->render_height / 2.f + line_height / 2.f - 2;
+    float line_height = renderer->render_height / perpendicular_wall_dist + 4; // + 4 for rounding error
+    float wall_bottom = renderer->render_height / 2.f + line_height / 2.f - 2; // - 2 for rounding error
 
     for (int y = fmaxf(renderer->render_height / 2.f, wall_bottom); y < renderer->render_height; ++y) {
       Vector2 texture_pos =
@@ -141,7 +141,7 @@ void *draw_stripe(void *void_args) {
     if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
       tex_x = wall_texture.texture.width - tex_x - 1;
 
-    float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1;
+    float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1; // - 1 for rounding error
     int y_start = fmaxf(0, draw_start);
     int y_end = fminf(draw_start + line_height, renderer->render_height);
     Color tint = WHITE;
