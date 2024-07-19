@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define RENDER_THREAD_COUNT 25
+#define RENDER_THREAD_COUNT 8
 
 typedef enum {
   SIDE_RIGHT = 0,
