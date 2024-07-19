@@ -146,8 +146,8 @@ void *draw_stripe(void *void_args) {
     int y_start = fmaxf(0, draw_start);
     int y_end = fminf(draw_start + line_height, renderer->render_height);
     for (int y = y_start; y < y_end; ++y) {
-      float y_percentage = (y - draw_start) / (draw_start + line_height - draw_start);
-      int tex_y = y_percentage * wall_texture.texture.height;
+      float y_percentage = (y - draw_start) / line_height;
+      int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
       Color tint = WHITE;
       if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
       draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
