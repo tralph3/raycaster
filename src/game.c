@@ -16,7 +16,12 @@ GameState state_editor = {0};
 GameState state_test_map = {0};
 
 Game create_new_game(void) {
-  SetConfigFlags(FLAG_FULLSCREEN_MODE | FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
+  SetConfigFlags(
+                 FLAG_FULLSCREEN_MODE |
+                 FLAG_WINDOW_RESIZABLE |
+                 FLAG_VSYNC_HINT |
+                 FLAG_MSAA_4X_HINT
+                 );
 
   InitWindow(0, 0, "Raycaster");
   InitAudioDevice();
