@@ -12,8 +12,6 @@ typedef struct {
     float speed;
     float size;
     float rotation_speed;
-    Camera camera;
-    float pitch;
 } Player;
 
 typedef enum {
@@ -26,7 +24,6 @@ typedef enum {
 void player_move(Player*, Vector2, float);
 void player_rotate(Player*, float);
 void player_pitch(Player*, float);
-Player create_new_player(Vector2, PlayerDirection, float);
-void update_player_camera(Player*);
+Player create_new_player(Vector2, PlayerDirection);
 
 #endif

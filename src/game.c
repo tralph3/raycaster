@@ -51,14 +51,13 @@ Game create_new_game(void) {
   Texture2D sky = LoadTexture("./assets/textures/sky.png");
   renderer.textures = textures;
   renderer.sprites = sprites;
-  float aspect_ratio = (float)renderer.render_width / renderer.render_height;
   gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
   gui_settings.main_background = BLUE;
   Game game = {
     .map = map,
     .current_state = state_editor,
     .player = create_new_player(map.player_start_position,
-                                PLAYER_DIRECTION_RIGHT, aspect_ratio),
+                                PLAYER_DIRECTION_RIGHT),
     .textures = textures,
     .sprites = sprites,
     .sky = sky,
@@ -91,7 +90,6 @@ void state_play_loop(Game *game) {
   HideCursor();
   handle_input(&game->player);
   check_collission(&game->player, &game->map);
-  update_player_camera(&game->player);
   draw_everything(&game->renderer, &game->player, &game->map);
 }
 
