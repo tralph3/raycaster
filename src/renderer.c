@@ -114,10 +114,10 @@ void *draw_stripe(void *void_args) {
       break;
     }
 
-    float line_height = renderer->render_height / perpendicular_wall_dist;
-    float wall_bottom = renderer->render_height / 2.f + line_height / 2.f;
+    float line_height = renderer->render_height / perpendicular_wall_dist + 4;
+    float wall_bottom = renderer->render_height / 2.f + line_height / 2.f - 2;
 
-    for (int y = wall_bottom; y < renderer->render_height; ++y) {
+    for (int y = fmaxf(renderer->render_height / 2.f, wall_bottom); y < renderer->render_height; ++y) {
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_lengths[y]));
       MapTile tile = get_tile_at_point(map, texture_pos);
