@@ -41,7 +41,7 @@ Game create_new_game(void) {
     .screen_width = GetMonitorWidth(current_monitor),
     .screen_height = GetMonitorHeight(current_monitor),
   };
-  Texture2D render_texture = LoadRenderTexture(renderer.render_width, renderer.render_height).texture;
+  Texture2D render_texture = LoadRenderTexture(renderer.render_height, renderer.render_width).texture;
   renderer.render_texture = render_texture;
   renderer.screen_buffer = malloc(renderer.render_width * renderer.render_height * sizeof(Color));
   init_ray_lengths(&renderer);

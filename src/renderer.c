@@ -31,7 +31,7 @@ DrawStripeArgs thread_args[RENDER_THREAD_COUNT] = {0};
 
 inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint) {
   color = ColorTint(color, tint);
-  renderer->screen_buffer[x + y * renderer->render_width] = color;
+  renderer->screen_buffer[y + x * renderer->render_height] = color;
 }
 
 void init_ray_lengths(Renderer *renderer) {
@@ -201,7 +201,7 @@ void draw_everything(Renderer *renderer, Player *player, Map *map) {
   draw_skybox(renderer, player, map);
   draw_world(renderer, player, map);
   UpdateTexture(renderer->render_texture, renderer->screen_buffer);
-  DrawTexturePro(renderer->render_texture, (Rectangle){0, 0, renderer->render_width, renderer->render_height}, (Rectangle){0, 0, renderer->screen_width, renderer->screen_height}, Vector2Zero(), 0, WHITE);
+  DrawTexturePro(renderer->render_texture, (Rectangle){0, 0, renderer->render_height, -renderer->render_width}, (Rectangle){0, 0, renderer->screen_height, renderer->screen_width}, (Vector2){0,renderer->screen_width}, 90, WHITE);
   DrawFPS(0, 0);
   EndDrawing();
 }
