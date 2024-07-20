@@ -6,38 +6,51 @@
 #include <raymath.h>
 #include <raylib.h>
 #include <rlgl.h>
-
-#include <stdio.h>
+#include <stdlib.h>
 
 void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
   Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id).texture;
   Texture2D ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id).texture;
   Texture2D floor_texture = get_texture(&renderer->textures, tile->floor_id).texture;
 
-  if (editor->layer == LAYER_FLOOR || tile->type != TILE_TYPE_WALL) {
+  switch (editor->layer) {
+  case LAYER_FLOOR: {
     Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
     Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE,
                              TILE_SIZE, TILE_SIZE};
-    Color color = WHITE;
-    if (editor->layer == LAYER_CEILING) color = ColorBrightness(color, -0.5f);
-    else if (editor->layer == LAYER_WALL) color = ColorBrightness(color, -0.2f);
-    DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, color);
-  }
-
-  if (tile->type == TILE_TYPE_WALL && editor->layer > LAYER_FLOOR) {
-    Rectangle source = {0, 0, wall_texture.width, wall_texture.height};
-    Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
-    Color color = WHITE;
-    if (editor->layer == LAYER_CEILING) color = ColorBrightness(color, -0.2f);
-    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, color);
-  }
-
-    Rectangle source = {0, 0, ceiling_texture.width, ceiling_texture.height};
+    DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, WHITE);
+    source.width = wall_texture.width;
+    source.height = wall_texture.height;
+    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, ColorAlpha(WHITE, 0.4f));
+  } break;
+  case LAYER_WALL: {
+    Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
     Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE,
                              TILE_SIZE, TILE_SIZE};
-    Color color = WHITE;
-    if (editor->layer != LAYER_CEILING) color = ColorAlpha(color, 0.05);
-    DrawTexturePro(ceiling_texture, source, destination, Vector2Zero(), 0, color);
+    DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+    source.width = wall_texture.width;
+    source.height = wall_texture.height;
+    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, WHITE);
+    source.width = ceiling_texture.width;
+    source.height = ceiling_texture.height;
+    DrawTexturePro(ceiling_texture, source, destination, Vector2Zero(), 0, ColorAlpha(WHITE, 0.2f));
+  } break;
+  case LAYER_CEILING: {
+    Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
+    Rectangle destination = {position.x * TILE_SIZE, position.y * TILE_SIZE,
+                             TILE_SIZE, TILE_SIZE};
+    DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.8f));
+    source.width = wall_texture.width;
+    source.height = wall_texture.height;
+    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+    source.width = ceiling_texture.width;
+    source.height = ceiling_texture.height;
+    DrawTexturePro(ceiling_texture, source, destination, Vector2Zero(), 0, WHITE);
+  } break;
+  default:
+    exit(1);
+    break;
+  }
 }
 
 void draw_current_tile(Renderer *renderer, MapEditor *editor) {
@@ -77,7 +90,6 @@ void draw_gui(MapEditor *editor, Renderer *renderer) {
 
 void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
   BeginDrawing();
-  draw_current_tile(renderer, editor);
   ClearBackground(BLACK);
   BeginMode2D(editor->camera);
   unsigned int map_width = editor->map->width;
@@ -91,6 +103,7 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
   }
   DrawRectangleLinesEx((Rectangle){0,0, map_width * TILE_SIZE, map_height * TILE_SIZE}, 2, WHITE);
   EndMode2D();
+  draw_current_tile(renderer, editor);
   draw_gui(editor, renderer);
   EndDrawing();
 }
