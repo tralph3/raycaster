@@ -112,26 +112,7 @@ void *draw_stripe(void *void_args) {
     }
 
     float line_height = renderer->render_height / perpendicular_wall_dist + 4; // + 4 for rounding error
-    float wall_bottom = renderer->render_height / 2.f + line_height / 2.f - 2; // - 2 for rounding error
-
-    for (int y = fmaxf(renderer->render_height / 2.f, wall_bottom); y < renderer->render_height; ++y) {
-      float ray_length = (renderer->render_height / 2.f) / (y - renderer->render_height / 2.f);
-      Vector2 texture_pos =
-        Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
-      MapTile tile = get_tile_at_point(map, texture_pos);
-      TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
-      TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
-      texture_pos.x -= (int)texture_pos.x;
-      texture_pos.y -= (int)texture_pos.y;
-
-      int floor_tex_x = texture_pos.x * floor_texture.texture.width;
-      int floor_tex_y = texture_pos.y * floor_texture.texture.height;
-      int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
-      int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
-      draw_pixel(renderer, x, y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), WHITE);
-      int mirrored_y = fmaxf(0, y - ((y + 1 - (renderer->render_height/2.f)) * 2));
-      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), WHITE);
-    }
+    float wall_top = renderer->render_height / 2.f - line_height / 2.f;
 
     wall_x -= (int)wall_x;
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
@@ -149,6 +130,33 @@ void *draw_stripe(void *void_args) {
       int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
       draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
     }
+    for (int y = wall_top; y > 0; --y) {
+      float elevation = 0;
+      float ray_length = (renderer->render_height / 2.f) / (renderer->render_height / 2.f -  y);
+      Vector2 texture_pos =
+        Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
+      MapTile tile = get_tile_at_point(map, texture_pos);
+      if ((int)texture_pos.x == 3 && (int)texture_pos.y == 2)
+        elevation = 0.3 * renderer->render_height;
+      TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
+      TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
+      texture_pos.x -= (int)texture_pos.x;
+      texture_pos.y -= (int)texture_pos.y;
+
+      int floor_tex_x = texture_pos.x * floor_texture.texture.width;
+      int floor_tex_y = texture_pos.y * floor_texture.texture.height;
+      int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
+      int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
+      float distance_to_screen_center = renderer->render_height / 2.f - y;
+      int mirrored_y = y + distance_to_screen_center * 2 - 2;
+      for (int dy = y + elevation / ray_length; dy > y; --dy) {
+        draw_pixel(renderer, x, dy, RED, WHITE);
+      }
+      draw_pixel(renderer, x, y + elevation / ray_length, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), WHITE);
+      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), WHITE);
+    }
+
+
   }
   pthread_exit(NULL);
   return NULL;
