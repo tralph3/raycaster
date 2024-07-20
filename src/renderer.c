@@ -47,11 +47,11 @@ void *draw_stripe(void *void_args) {
     int step_x;
     int step_y;
     bool hit = false;
-    double wall_x;
+    float wall_x;
     int side;
     float perpendicular_wall_dist;
     MapTile wall_tile;
-    double camera_x = (x << 1) / (double)renderer->render_width - 1;
+    float camera_x = (x << 1) / (double)renderer->render_width - 1;
     Vector2 ray_dir = Vector2Add(
                                  player->direction, Vector2Scale(player->camera_plane, camera_x));
 
@@ -75,6 +75,8 @@ void *draw_stripe(void *void_args) {
       side_dist.y = (1 - p_percentage_y) * delta_dist.y;
     }
 
+    float light_source_distance = 0;
+    Vector2 light_source_position = player->position;
     while (!hit) {
       if (side_dist.x < side_dist.y) {
         side_dist.x += delta_dist.x;
@@ -89,9 +91,10 @@ void *draw_stripe(void *void_args) {
       switch (wall_tile.type) {
       /* case TILE_TYPE_THIN_WALL: */
       /*   break; */
-      case TILE_TYPE_WALL:
+      case TILE_TYPE_WALL: {
         hit = true;
-        break;
+
+      } break;
       default:
         break;
       }
@@ -111,35 +114,18 @@ void *draw_stripe(void *void_args) {
       break;
     }
 
-    float line_height = renderer->render_height / perpendicular_wall_dist + 4; // + 4 for rounding error
+    float line_height = renderer->render_height / perpendicular_wall_dist;
     float wall_top = renderer->render_height / 2.f - line_height / 2.f;
 
-    wall_x -= (int)wall_x;
-    TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
-    int tex_x = wall_x * wall_texture.texture.width;
-    if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
-      tex_x = wall_texture.texture.width - tex_x - 1;
-
-    float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1; // - 1 for rounding error
-    int y_start = fmaxf(0, draw_start);
-    int y_end = fminf(draw_start + line_height, renderer->render_height);
-    Color tint = WHITE;
-    if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
-    for (int y = y_start; y < y_end; ++y) {
-      float y_percentage = (y - draw_start) / line_height;
-      int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
-      draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
-    }
-    for (int y = wall_top; y > 0; --y) {
-      float elevation = 0;
+    float light_intensity = 0.8f;
+    for (int y = 0; y < wall_top; ++y) {
       float ray_length = (renderer->render_height / 2.f) / (renderer->render_height / 2.f -  y);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile tile = get_tile_at_point(map, texture_pos);
-      if ((int)texture_pos.x == 3 && (int)texture_pos.y == 2)
-        elevation = 0.3 * renderer->render_height;
       TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
       TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
+      float tile_light_source_distance = Vector2LengthSqr(Vector2Subtract(texture_pos, light_source_position));;
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
@@ -149,14 +135,29 @@ void *draw_stripe(void *void_args) {
       int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
       float distance_to_screen_center = renderer->render_height / 2.f - y;
       int mirrored_y = y + distance_to_screen_center * 2 - 2;
-      for (int dy = y + elevation / ray_length; dy > y; --dy) {
-        draw_pixel(renderer, x, dy, RED, WHITE);
-      }
-      draw_pixel(renderer, x, y + elevation / ray_length, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), WHITE);
-      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), WHITE);
+
+      draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), ColorBrightness(ColorBrightness(WHITE, -tile_light_source_distance*light_intensity), 0.1f));
+      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), ColorBrightness(ColorBrightness(WHITE, -tile_light_source_distance*light_intensity), 0.1f));
     }
 
 
+    wall_x -= (int)wall_x;
+    light_source_distance = Vector2LengthSqr(Vector2Subtract(Vector2Add(player->position, Vector2Scale(ray_dir, perpendicular_wall_dist)), light_source_position));
+    TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
+    int tex_x = wall_x * wall_texture.texture.width;
+    if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
+      tex_x = wall_texture.texture.width - tex_x - 1;
+
+    float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1; // - 1 for rounding error
+    int y_start = fmaxf(0, draw_start);
+    int y_end = fminf(draw_start + line_height, renderer->render_height);
+    Color tint = ColorBrightness(ColorBrightness(WHITE, -light_source_distance*light_intensity), 0.1f);
+    if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
+    for (int y = y_start; y < y_end; ++y) {
+      float y_percentage = (y - draw_start) / line_height;
+      int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
+      draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
+    }
   }
   pthread_exit(NULL);
   return NULL;
