@@ -131,8 +131,8 @@ void *draw_stripe(void *void_args) {
       int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
       int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
       draw_pixel(renderer, x, y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), WHITE);
-      int inverted_y = fmaxf(0, y - ((y + 1 -(renderer->render_height/2.f)) * 2));
-      draw_pixel(renderer, x, inverted_y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), WHITE);
+      int mirrored_y = fmaxf(0, y - ((y + 1 - (renderer->render_height/2.f)) * 2));
+      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), WHITE);
     }
 
     wall_x -= (int)wall_x;
