@@ -60,6 +60,7 @@ void draw_gui(MapEditor *editor, Renderer *renderer) {
     layer_label = "FLOOR";
     break;
   default:
+    layer_label = "UNKNOWN";
     break;
   }
 
