@@ -24,22 +24,12 @@ typedef struct {
   int end;
 } DrawStripeArgs;
 
-float *ray_lengths;
-
 pthread_t threads[RENDER_THREAD_COUNT] = {0};
 DrawStripeArgs thread_args[RENDER_THREAD_COUNT] = {0};
 
 inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint) {
   color = ColorTint(color, tint);
   renderer->screen_buffer[y + x * renderer->render_height] = color;
-}
-
-void init_ray_lengths(Renderer *renderer) {
-  ray_lengths = malloc(renderer->render_height * sizeof(float));
-  for (int y = renderer->render_height / 2.f; y < renderer->render_height; ++y) {
-    float ray_angle = atan(y - renderer->render_height / 2.f);
-    ray_lengths[y] = (renderer->render_height / 2.f) / tan(ray_angle);
-  }
 }
 
 void *draw_stripe(void *void_args) {
@@ -96,8 +86,15 @@ void *draw_stripe(void *void_args) {
         side = SIDE_LEFT;
       }
       wall_tile = get_tile_at_point(map, map_pos);
-      if (wall_tile.type == TILE_TYPE_WALL)
+      switch (wall_tile.type) {
+      /* case TILE_TYPE_THIN_WALL: */
+      /*   break; */
+      case TILE_TYPE_WALL:
         hit = true;
+        break;
+      default:
+        break;
+      }
     }
 
     switch (side) {
@@ -118,8 +115,9 @@ void *draw_stripe(void *void_args) {
     float wall_bottom = renderer->render_height / 2.f + line_height / 2.f - 2; // - 2 for rounding error
 
     for (int y = fmaxf(renderer->render_height / 2.f, wall_bottom); y < renderer->render_height; ++y) {
+      float ray_length = (renderer->render_height / 2.f) / (y - renderer->render_height / 2.f);
       Vector2 texture_pos =
-        Vector2Add(player->position, Vector2Scale(ray_dir, ray_lengths[y]));
+        Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile tile = get_tile_at_point(map, texture_pos);
       TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
       TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
@@ -191,7 +189,7 @@ void draw_skybox(Renderer *renderer, Player *player, Map *map) {
   float angle_percentage = player_angle / (2*PI);
   DrawTexturePro(skybox_texture,
                  (Rectangle){angle_percentage * skybox_texture.width, 0, skybox_texture.width/4.f, skybox_texture.height},
-                 (Rectangle){0, 0, renderer->render_width, renderer->render_height/2.f},
+                 (Rectangle){0, 0, renderer->screen_width, renderer->screen_height/2.f},
                  Vector2Zero(), 0, WHITE);
 }
 

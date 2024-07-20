@@ -44,7 +44,6 @@ Game create_new_game(void) {
   Texture2D render_texture = LoadRenderTexture(renderer.render_height, renderer.render_width).texture;
   renderer.render_texture = render_texture;
   renderer.screen_buffer = malloc(renderer.render_width * renderer.render_height * sizeof(Color));
-  init_ray_lengths(&renderer);
   Map map = load_map("./assets/maps/test.map");
   SpriteArr sprites = {0};
   TextureArr textures = load_all_textures();
