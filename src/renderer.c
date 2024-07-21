@@ -8,8 +8,9 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/sysinfo.h>
 
-#define RENDER_THREAD_COUNT 8
+int render_thread_count;
 
 typedef enum {
   SIDE_RIGHT = 0,
@@ -24,8 +25,22 @@ typedef struct {
   int end;
 } DrawStripeArgs;
 
-pthread_t threads[RENDER_THREAD_COUNT] = {0};
-DrawStripeArgs thread_args[RENDER_THREAD_COUNT] = {0};
+typedef struct {
+  Vector2 position;
+  float intensity;
+  float fall_off;
+} LightSource;
+float natural_light = 0.1f;
+
+LightSource light_source = {
+  {1, 1},
+  0.01f,
+  10.f,
+};
+
+pthread_t *threads;
+DrawStripeArgs *thread_args;
+
 void init_renderer(Renderer *renderer) {
   render_thread_count = get_nprocs();
   threads = malloc(render_thread_count * sizeof(pthread_t));
@@ -94,9 +109,6 @@ void *draw_stripe(void *void_args) {
       step_y = 1;
       side_dist.y = (1 - p_percentage_y) * delta_dist.y;
     }
-
-    float light_source_distance = 0;
-    Vector2 light_source_position = player->position;
     while (!hit) {
       if (side_dist.x < side_dist.y) {
         side_dist.x += delta_dist.x;
@@ -120,14 +132,17 @@ void *draw_stripe(void *void_args) {
       }
     }
 
+    Vector2 wall_stripe_position;
     switch (side) {
     case SIDE_RIGHT:
       perpendicular_wall_dist = side_dist.x - delta_dist.x;
-      wall_x = player->position.y + perpendicular_wall_dist * ray_dir.y;
+      wall_stripe_position = Vector2Add(player->position, Vector2Scale(ray_dir, perpendicular_wall_dist));
+      wall_x = wall_stripe_position.y;
       break;
     case SIDE_LEFT:
       perpendicular_wall_dist = side_dist.y - delta_dist.y;
-      wall_x = player->position.x + perpendicular_wall_dist * ray_dir.x;
+      wall_stripe_position = Vector2Add(player->position, Vector2Scale(ray_dir, perpendicular_wall_dist));
+      wall_x = wall_stripe_position.x;
       break;
     default:
       exit(1);
@@ -136,8 +151,8 @@ void *draw_stripe(void *void_args) {
 
     float line_height = renderer->render_height / perpendicular_wall_dist;
     float wall_top = renderer->render_height / 2.f - line_height / 2.f;
+    line_height += 4; // + 4 for rounding error
 
-    float light_intensity = 0.8f;
     for (int y = 0; y < wall_top; ++y) {
       float ray_length = (renderer->render_height / 2.f) / (renderer->render_height / 2.f -  y);
       Vector2 texture_pos =
@@ -145,7 +160,7 @@ void *draw_stripe(void *void_args) {
       MapTile tile = get_tile_at_point(map, texture_pos);
       TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
       TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
-      float tile_light_source_distance = Vector2LengthSqr(Vector2Subtract(texture_pos, light_source_position));;
+      float tile_light_source_distance = Vector2LengthSqr(Vector2Subtract(texture_pos, light_source.position));;
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
@@ -154,15 +169,16 @@ void *draw_stripe(void *void_args) {
       int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
       int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
       float distance_to_screen_center = renderer->render_height / 2.f - y;
-      int mirrored_y = y + distance_to_screen_center * 2 - 2;
-
-      draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), ColorBrightness(ColorBrightness(WHITE, -tile_light_source_distance*light_intensity), 0.1f));
-      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), ColorBrightness(ColorBrightness(WHITE, -tile_light_source_distance*light_intensity), 0.1f));
+      int mirrored_y = y + distance_to_screen_center * 2;
+      Color tint = WHITE;
+      tint = ColorBrightness(tint, -tile_light_source_distance*light_source.intensity);
+      tint = ColorBrightness(tint, natural_light);
+      draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
+      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), tint);
     }
 
-
     wall_x -= (int)wall_x;
-    light_source_distance = Vector2LengthSqr(Vector2Subtract(Vector2Add(player->position, Vector2Scale(ray_dir, perpendicular_wall_dist)), light_source_position));
+    float light_source_distance = Vector2LengthSqr(Vector2Subtract(wall_stripe_position, light_source.position));
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
     int tex_x = wall_x * wall_texture.texture.width;
     if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
@@ -171,7 +187,9 @@ void *draw_stripe(void *void_args) {
     float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1; // - 1 for rounding error
     int y_start = fmaxf(0, draw_start);
     int y_end = fminf(draw_start + line_height, renderer->render_height);
-    Color tint = ColorBrightness(ColorBrightness(WHITE, -light_source_distance*light_intensity), 0.1f);
+    Color tint = WHITE;
+    tint = ColorBrightness(tint, -light_source_distance*light_source.intensity);
+    tint = ColorBrightness(tint, natural_light);
     if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
     for (int y = y_start; y < y_end; ++y) {
       float y_percentage = (y - draw_start) / line_height;
@@ -184,31 +202,24 @@ void *draw_stripe(void *void_args) {
 }
 
 void draw_world(Renderer *renderer, Player *player, Map *map) {
-  int offset = renderer->render_width / RENDER_THREAD_COUNT;
-  int leftover = renderer->render_width - (offset * RENDER_THREAD_COUNT);
-  pthread_t leftover_thread;
-  if (leftover > 0) {
-    DrawStripeArgs args = {
-      .renderer = renderer,
-      .map = map,
-      .player = player,
-      .start = renderer->render_width - leftover,
-      .end = renderer->render_width,
-    };
-    pthread_create(&leftover_thread, NULL, draw_stripe, &args);
-  }
-    for (int i = 0; i < RENDER_THREAD_COUNT; ++i) {
-      thread_args[i].renderer = renderer;
-      thread_args[i].map = map;
-      thread_args[i].player = player;
-      thread_args[i].start = offset * i;
+  int offset = renderer->render_width / render_thread_count;
+  int leftover = renderer->render_width - (offset * render_thread_count);
+  for (int i = 0; i < render_thread_count; ++i) {
+    thread_args[i].renderer = renderer;
+    thread_args[i].map = map;
+    thread_args[i].player = player;
+    thread_args[i].start = offset * i;
+    if (leftover > 0 && i == render_thread_count - 1)
+      thread_args[i].end = offset * i + leftover;
+    else
       thread_args[i].end = offset * (i + 1);
-      pthread_create(threads + i, NULL, draw_stripe, thread_args + i);
-    }
-    for (int i = 0; i < RENDER_THREAD_COUNT; ++i)
-      pthread_join(threads[i], NULL);
-    if (leftover > 0)
-      pthread_join(leftover_thread, NULL);
+    pthread_create(threads + i, NULL, draw_stripe, thread_args + i);
+  }
+  for (int i = 0; i < render_thread_count; ++i)
+    pthread_join(threads[i], NULL);
+
+  UpdateTexture(renderer->render_texture, renderer->screen_buffer);
+  DrawTexturePro(renderer->render_texture, (Rectangle){0, 0, renderer->render_height, -renderer->render_width}, (Rectangle){0, 0, renderer->screen_height, renderer->screen_width}, (Vector2){0,renderer->screen_width}, 90, WHITE);
 }
 
 void draw_skybox(Renderer *renderer, Player *player, Map *map) {
@@ -227,8 +238,6 @@ void draw_everything(Renderer *renderer, Player *player, Map *map) {
   ClearBackground(BLACK);
   draw_skybox(renderer, player, map);
   draw_world(renderer, player, map);
-  UpdateTexture(renderer->render_texture, renderer->screen_buffer);
-  DrawTexturePro(renderer->render_texture, (Rectangle){0, 0, renderer->render_height, -renderer->render_width}, (Rectangle){0, 0, renderer->screen_height, renderer->screen_width}, (Vector2){0,renderer->screen_width}, 90, WHITE);
   DrawFPS(0, 0);
   EndDrawing();
 }
