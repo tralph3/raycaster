@@ -6,7 +6,14 @@
 
 TexturePixels load_texture(const char* path) {
   Image image = LoadImage(path);
-  Color *pixels = LoadImageColors(image);
+  Color *original_colors = LoadImageColors(image);
+  Color *pixels = malloc(image.width * image.height * sizeof(Color));
+  for (int y = 0; y < image.height; ++y) {
+    for (int x = 0; x < image.width; ++x) {
+      pixels[y + x * image.height] = original_colors[x + y * image.width];
+    }
+  }
+  free(original_colors);
   TexturePixels texture_pixels = {
     .pixels = pixels,
     .texture = LoadTextureFromImage(image),
@@ -42,5 +49,5 @@ inline TexturePixels get_texture(TextureArr *texture_arr, TextureID id) {
 }
 
 inline Color get_texture_pixel(TexturePixels pixels, int x, int y) {
-  return pixels.pixels[x + y * pixels.texture.width];
+  return pixels.pixels[y + x * pixels.texture.height];
 }
