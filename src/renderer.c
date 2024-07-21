@@ -27,22 +27,29 @@ typedef struct {
 
 typedef struct {
   Vector2 position;
-  float intensity;
-  float fall_off;
+  int intensity;
 } LightSource;
 float natural_light = 0.1f;
 
 LightSource light_source = {
   {1, 1},
-  0.01f,
-  10.f,
+  20,
 };
 
 pthread_t *threads;
 DrawStripeArgs *thread_args;
 
+Color get_point_light_value(Color color, LightSource light_source, Vector2 position, Map *map) {
+    float light_source_distance_sqr = Vector2LengthSqr(Vector2Subtract(position, light_source.position));
+    float brightness_factor = -light_source_distance_sqr / light_source.intensity;
+    color = ColorBrightness(color, brightness_factor);
+    color = ColorBrightness(color, natural_light);
+    return color;
+}
+
 void init_renderer(Renderer *renderer) {
   render_thread_count = get_nprocs();
+  /* render_thread_count = 1; */
   threads = malloc(render_thread_count * sizeof(pthread_t));
   thread_args = malloc(render_thread_count * sizeof(DrawStripeArgs));
 
@@ -51,8 +58,8 @@ void init_renderer(Renderer *renderer) {
   renderer->render_height = GetMonitorHeight(current_monitor);
   renderer->screen_width = GetMonitorWidth(current_monitor);
   renderer->screen_height = GetMonitorHeight(current_monitor);
-  renderer->render_width = 640;
-  renderer->render_height = 480;
+  /* renderer->render_width = 640; */
+  /* renderer->render_height = 480; */
   Texture2D render_texture = LoadRenderTexture(renderer->render_height, renderer->render_width).texture;
   renderer->render_texture = render_texture;
   renderer->screen_buffer = malloc(renderer->render_width * renderer->render_height * sizeof(Color));
@@ -152,10 +159,9 @@ void *draw_stripe(void *void_args) {
 
     float line_height = renderer->render_height / perpendicular_wall_dist;
     float wall_top = renderer->render_height / 2.f - line_height / 2.f;
-    /* line_height += 4; // + 4 for rounding error */
+    line_height += 4; // + 4 for rounding error
 
     wall_x -= (int)wall_x;
-    float light_source_distance = Vector2LengthSqr(Vector2Subtract(wall_stripe_position, light_source.position));
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
     int tex_x = wall_x * wall_texture.texture.width;
     if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
@@ -164,9 +170,7 @@ void *draw_stripe(void *void_args) {
     float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1; // - 1 for rounding error
     int y_start = fmaxf(0, draw_start);
     int y_end = fminf(draw_start + line_height, renderer->render_height);
-    Color tint = WHITE;
-    tint = ColorBrightness(tint, -light_source_distance*light_source.intensity);
-    tint = ColorBrightness(tint, natural_light);
+    Color tint = get_point_light_value(WHITE, light_source, wall_stripe_position, map);
     if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
     for (int y = y_start; y < y_end; ++y) {
       float y_percentage = (y - draw_start) / line_height;
@@ -179,9 +183,10 @@ void *draw_stripe(void *void_args) {
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile tile = get_tile_at_point(map, texture_pos);
+      Color tint = get_point_light_value(WHITE, light_source, texture_pos, map);
+
       TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
       TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
-      float tile_light_source_distance = Vector2LengthSqr(Vector2Subtract(texture_pos, light_source.position));;
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
@@ -191,9 +196,7 @@ void *draw_stripe(void *void_args) {
       int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
       float distance_to_screen_center = renderer->render_height / 2.f - y;
       int mirrored_y = y + distance_to_screen_center * 2;
-      Color tint = WHITE;
-      tint = ColorBrightness(tint, -tile_light_source_distance*light_source.intensity);
-      tint = ColorBrightness(tint, natural_light);
+
       draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
       draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), tint);
     }
