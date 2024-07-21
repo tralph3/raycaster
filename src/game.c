@@ -34,30 +34,15 @@ Game create_new_game(void) {
   state_test_map.loop = state_test_map_loop;
   state_test_map.next_state = &state_editor;
 
-  int current_monitor = GetCurrentMonitor();
-  Renderer renderer = {
-    .render_width = GetMonitorWidth(current_monitor),
-    .render_height = GetMonitorHeight(current_monitor),
-    .screen_width = GetMonitorWidth(current_monitor),
-    .screen_height = GetMonitorHeight(current_monitor),
-  };
-  Texture2D render_texture = LoadRenderTexture(renderer.render_height, renderer.render_width).texture;
-  renderer.render_texture = render_texture;
-  renderer.screen_buffer = malloc(renderer.render_width * renderer.render_height * sizeof(Color));
   Map map = load_map("./assets/maps/test.map");
-  SpriteArr sprites = {0};
-  TextureArr textures = load_all_textures();
-  renderer.textures = textures;
-  renderer.sprites = sprites;
   gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
   gui_settings.main_background = BLUE;
+  Renderer renderer;
+  init_renderer(&renderer);
   Game game = {
     .map = map,
     .current_state = state_editor,
-    .player = create_new_player(map.player_start_position,
-                                PLAYER_DIRECTION_RIGHT),
-    .textures = textures,
-    .sprites = sprites,
+    .player = create_new_player(map.player_start_position, PLAYER_DIRECTION_RIGHT),
     .renderer = renderer,
   };
   return game;
@@ -72,6 +57,7 @@ void game_run(Game *game) {
     .camera = editor_camera,
     .map = &game->map,
     .layer = LAYER_WALL,
+    .current_tool = EDITOR_TOOL_PENCIL,
   };
   game->editor = editor;
   while (!WindowShouldClose()) {

@@ -26,6 +26,26 @@ typedef struct {
 
 pthread_t threads[RENDER_THREAD_COUNT] = {0};
 DrawStripeArgs thread_args[RENDER_THREAD_COUNT] = {0};
+void init_renderer(Renderer *renderer) {
+  render_thread_count = get_nprocs();
+  threads = malloc(render_thread_count * sizeof(pthread_t));
+  thread_args = malloc(render_thread_count * sizeof(DrawStripeArgs));
+
+  int current_monitor = GetCurrentMonitor();
+  renderer->render_width = GetMonitorWidth(current_monitor);
+  renderer->render_height = GetMonitorHeight(current_monitor);
+  renderer->screen_width = GetMonitorWidth(current_monitor);
+  renderer->screen_height = GetMonitorHeight(current_monitor);
+  renderer->render_width = 640;
+  renderer->render_height = 480;
+  Texture2D render_texture = LoadRenderTexture(renderer->render_height, renderer->render_width).texture;
+  renderer->render_texture = render_texture;
+  renderer->screen_buffer = malloc(renderer->render_width * renderer->render_height * sizeof(Color));
+  TextureArr textures = load_all_textures();
+  renderer->textures = textures;
+  SpriteArr sprites = {0};
+  renderer->sprites = sprites;
+}
 
 inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint) {
   color = ColorTint(color, tint);

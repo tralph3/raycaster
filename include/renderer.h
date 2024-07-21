@@ -30,5 +30,6 @@ void draw_everything(Renderer *, Player *, Map *);
 void draw_sprites(Renderer *, Camera *);
 void init_ray_lengths(Renderer *);
 void draw_pixel(Renderer *, int, int, Color, Color);
+void init_renderer(Renderer *);
 
 #endif
