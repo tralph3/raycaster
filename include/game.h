@@ -23,7 +23,6 @@ struct Game {
   Player player;
   TextureArr textures;
   SpriteArr sprites;
-  Texture2D sky;
   Renderer renderer;
   MapEditor editor;
 };

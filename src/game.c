@@ -47,7 +47,6 @@ Game create_new_game(void) {
   Map map = load_map("./assets/maps/test.map");
   SpriteArr sprites = {0};
   TextureArr textures = load_all_textures();
-  Texture2D sky = LoadTexture("./assets/textures/sky.png");
   renderer.textures = textures;
   renderer.sprites = sprites;
   gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
@@ -59,7 +58,6 @@ Game create_new_game(void) {
                                 PLAYER_DIRECTION_RIGHT),
     .textures = textures,
     .sprites = sprites,
-    .sky = sky,
     .renderer = renderer,
   };
   return game;
