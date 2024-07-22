@@ -28,14 +28,22 @@ typedef struct {
 
 typedef struct {
   Vector2 position;
-  int intensity;
+  float intensity;
+  float cutoff;
   Color tint;
 } LightSource;
 float natural_light = 0.2f;
 LightSource light_source5 = {
   {3.5, 3.5},
   10,
+  5,
   ORANGE,
+};
+LightSource light_source1 = {
+  {10.5, 11.5},
+  20,
+  10,
+  RED,
 };
 
 float *z_buffer = NULL;
@@ -44,12 +52,69 @@ DrawStripeArgs *thread_args = NULL;
 
 LightSource light_sources[5] = {0};
 
+bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
+  Vector2 ray_dir = Vector2Normalize(Vector2Subtract(end, start));
+  end = Vector2Add(end, Vector2Scale(ray_dir, -0.001));
+  Vector2 map_pos = (Vector2){(int)start.x, (int)start.y};
+  Vector2 end_map_pos = (Vector2){(int)end.x, (int)end.y};
+    float p_percentage_x = start.x - map_pos.x;
+    float p_percentage_y = start.y - map_pos.y;
+    int step_x;
+    int step_y;
+    bool hit = false;
+
+    Vector2 delta_dist = {
+      .x = ray_dir.x == 0 ? 1e30 : fabs(1 / ray_dir.x),
+      .y = ray_dir.y == 0 ? 1e30 : fabs(1 / ray_dir.y),
+    };
+    Vector2 side_dist;
+    if (ray_dir.x < 0) {
+      step_x = -1;
+      side_dist.x = p_percentage_x * delta_dist.x;
+    } else {
+      step_x = 1;
+      side_dist.x = (1 - p_percentage_x) * delta_dist.x;
+    }
+    if (ray_dir.y < 0) {
+      step_y = -1;
+      side_dist.y = p_percentage_y * delta_dist.y;
+    } else {
+      step_y = 1;
+      side_dist.y = (1 - p_percentage_y) * delta_dist.y;
+    }
+    while (!hit) {
+      if(map_pos.x == end_map_pos.x && map_pos.y == end_map_pos.y)
+        break;
+      if (side_dist.x < side_dist.y) {
+        side_dist.x += delta_dist.x;
+        map_pos.x += step_x;
+      } else {
+        side_dist.y += delta_dist.y;
+        map_pos.y += step_y;
+      }
+
+      MapTile tile = get_tile_at_point(map, map_pos);
+      switch (tile.type) {
+      /* case TILE_TYPE_THIN_WALL: */
+      /*   break; */
+      case TILE_TYPE_WALL: {
+        return false;
+      } break;
+      default:
+        break;
+      }
+    }
+    return true;
+}
+
 Color get_point_light_value(Vector2 position, Map *map) {
-  float max_factor = -1000;
+  float max_factor = -1;
   Color tint = WHITE;
-  for (int i = 0; i < 1; ++i) {
+  for (int i = 0; i < 2; ++i) {
     LightSource light_source = light_sources[i];
     float light_source_distance = Vector2Length(Vector2Subtract(position, light_source.position));
+    if (light_source_distance > light_source.cutoff) continue;
+    if (!hasDirectPath(map, light_source.position, position)) continue;
     float factor = -light_source_distance / light_source.intensity;
     if (factor > max_factor) {
       max_factor = factor;
@@ -67,6 +132,7 @@ Color get_point_light_value(Vector2 position, Map *map) {
 
 void init_renderer(Renderer *renderer) {
   light_sources[0] = light_source5;
+  light_sources[1] = light_source1;
   render_thread_count = get_nprocs();
   /* render_thread_count = 1; */
   threads = malloc(render_thread_count * sizeof(pthread_t));
@@ -77,6 +143,7 @@ void init_renderer(Renderer *renderer) {
   renderer->screen_height = GetMonitorHeight(current_monitor);
 
   set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor));
+  /* set_render_resolution(renderer, 320, 200); */
   TextureArr textures = load_all_textures();
   renderer->textures = textures;
   SpriteArr sprites = {0};
@@ -332,6 +399,7 @@ void draw_sprites(Renderer *renderer, Player *player) {
 }
 
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
+  light_sources[0].intensity = 3 + (random() % 10) / 20.f;
   BeginTextureMode(renderer->render_texture);
   ClearBackground(BLACK);
   draw_skybox(renderer, player, map);
