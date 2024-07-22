@@ -405,10 +405,10 @@ void draw_everything(Renderer *renderer, Player *player, Map *map) {
   draw_skybox(renderer, player, map);
   draw_world(renderer, player, map);
   draw_sprites(renderer, player);
-  DrawFPS(0, 0);
   EndTextureMode();
   BeginDrawing();
   DrawTexturePro(renderer->render_texture.texture, (Rectangle){0,0,renderer->render_width, -renderer->render_height}, (Rectangle){0,0,renderer->screen_width, renderer->screen_height}, Vector2Zero(), 0, WHITE);
+  DrawFPS(0, 0);
   EndDrawing();
 }
 
