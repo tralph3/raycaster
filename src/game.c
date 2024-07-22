@@ -26,12 +26,15 @@ Game create_new_game(void) {
   InitWindow(0, 0, "Raycaster");
   InitAudioDevice();
   state_play.loop = state_play_loop;
+  state_play.setup = state_play_setup;
   state_play.next_state = NULL;
 
   state_editor.loop = state_editor_loop;
+  state_editor.setup = state_editor_setup;
   state_editor.next_state = &state_test_map;
 
   state_test_map.loop = state_test_map_loop;
+  state_test_map.setup = state_test_map_setup;
   state_test_map.next_state = &state_editor;
 
   Map map = load_map("./assets/maps/test.map");
@@ -60,28 +63,42 @@ void game_run(Game *game) {
     .current_tool = EDITOR_TOOL_PENCIL,
   };
   game->editor = editor;
+  game->current_state.setup(game);
   while (!WindowShouldClose()) {
     game->current_state.loop(game);
     if (game->current_state.change_state) {
       game->current_state.change_state = false;
       game->current_state = *game->current_state.next_state;
+      game->current_state.setup(game);
     }
   }
 }
 
+void state_play_setup(Game *game) {
+  DisableCursor();
+}
+
 void state_play_loop(Game *game) {
-  HideCursor();
+
   handle_input(&game->player);
   check_collission(&game->player, &game->map);
   draw_everything(&game->renderer, &game->player, &game->map);
 }
 
-void state_editor_loop(Game *game) {
+void state_editor_setup(Game *game) {
   ShowCursor();
+}
+
+void state_editor_loop(Game *game) {
+
   draw_editor_interface(&game->renderer, &game->editor);
   editor_input(&game->editor);
   if (IsKeyPressed(KEY_T))
     game->current_state.change_state = true;
+}
+
+void state_test_map_setup(Game *game) {
+  DisableCursor();
 }
 
 void state_test_map_loop(Game *game) {
