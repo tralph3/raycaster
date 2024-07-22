@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "map.h"
 #include "textures.h"
+#include "dynarray.h"
 #include <math.h>
 #include <raylib.h>
 #include <raymath.h>
@@ -28,45 +29,82 @@ typedef struct {
 typedef struct {
   Vector2 position;
   int intensity;
+  Color tint;
 } LightSource;
-float natural_light = 0.1f;
-
-LightSource light_source = {
-  {1, 1},
-  20,
+float natural_light = 0.2f;
+LightSource light_source5 = {
+  {3.5, 3.5},
+  10,
+  ORANGE,
 };
 
-pthread_t *threads;
-DrawStripeArgs *thread_args;
+float *z_buffer = NULL;
+pthread_t *threads = NULL;
+DrawStripeArgs *thread_args = NULL;
 
-Color get_point_light_value(Color color, LightSource light_source, Vector2 position, Map *map) {
-    float light_source_distance_sqr = Vector2LengthSqr(Vector2Subtract(position, light_source.position));
-    float brightness_factor = -light_source_distance_sqr / light_source.intensity;
-    color = ColorBrightness(color, brightness_factor);
-    color = ColorBrightness(color, natural_light);
-    return color;
+LightSource light_sources[5] = {0};
+
+Color get_point_light_value(Vector2 position, Map *map) {
+  float max_factor = -1000;
+  Color tint = WHITE;
+  for (int i = 0; i < 1; ++i) {
+    LightSource light_source = light_sources[i];
+    float light_source_distance = Vector2Length(Vector2Subtract(position, light_source.position));
+    float factor = -light_source_distance / light_source.intensity;
+    if (factor > max_factor) {
+      max_factor = factor;
+      tint = light_source.tint;
+    }
+  }
+  tint = ColorBrightness(tint, max_factor);
+  MapTile tile = get_tile_at_point(map, position);
+  if (tile.ceiling_id == 0 && tile.type != TILE_TYPE_WALL)
+    tint = ColorBrightness(tint, natural_light * 2);
+  else
+    tint = ColorBrightness(tint, natural_light);
+  return tint;
 }
 
 void init_renderer(Renderer *renderer) {
+  light_sources[0] = light_source5;
   render_thread_count = get_nprocs();
   /* render_thread_count = 1; */
   threads = malloc(render_thread_count * sizeof(pthread_t));
   thread_args = malloc(render_thread_count * sizeof(DrawStripeArgs));
 
   int current_monitor = GetCurrentMonitor();
-  renderer->render_width = GetMonitorWidth(current_monitor);
-  renderer->render_height = GetMonitorHeight(current_monitor);
   renderer->screen_width = GetMonitorWidth(current_monitor);
   renderer->screen_height = GetMonitorHeight(current_monitor);
-  /* renderer->render_width = 640; */
-  /* renderer->render_height = 480; */
-  Texture2D render_texture = LoadRenderTexture(renderer->render_height, renderer->render_width).texture;
-  renderer->render_texture = render_texture;
-  renderer->screen_buffer = malloc(renderer->render_width * renderer->render_height * sizeof(Color));
+
+  set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor));
   TextureArr textures = load_all_textures();
   renderer->textures = textures;
   SpriteArr sprites = {0};
+  Sprite sprite = {
+    .position = {3.5, 3.5},
+    .texture_id = 13,
+  };
+  da_append(&sprites, sprite);
   renderer->sprites = sprites;
+}
+
+void set_render_resolution(Renderer *renderer, unsigned int width, unsigned int height) {
+  renderer->render_width = width;
+  renderer->render_height = height;
+
+  // for screen_buffer drawing
+  UnloadTexture(renderer->buffer_texture);
+  renderer->buffer_texture = LoadRenderTexture(renderer->render_height, renderer->render_width).texture;
+
+  // for built-in draw functions
+  UnloadRenderTexture(renderer->render_texture);
+  renderer->render_texture = LoadRenderTexture(renderer->render_width, renderer->render_height);
+
+  free(renderer->screen_buffer);
+  renderer->screen_buffer = malloc(renderer->render_width * renderer->render_height * sizeof(Color));
+
+  free(z_buffer);
+  z_buffer = malloc(renderer->render_width * sizeof(float));
 }
 
 inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint) {
@@ -93,7 +131,7 @@ void *draw_stripe(void *void_args) {
     int side;
     float perpendicular_wall_dist;
     MapTile wall_tile;
-    float camera_x = (x << 1) / (float)renderer->render_width - 1;
+    float camera_x = x * 2 / (float)renderer->render_width - 1;
     Vector2 ray_dir = Vector2Add(
                                  player->direction, Vector2Scale(player->camera_plane, camera_x));
 
@@ -157,9 +195,11 @@ void *draw_stripe(void *void_args) {
       break;
     }
 
+    z_buffer[x] = perpendicular_wall_dist;
     float line_height = renderer->render_height / perpendicular_wall_dist;
-    float wall_top = renderer->render_height / 2.f - line_height / 2.f;
-    line_height += 4; // + 4 for rounding error
+    float wall_top = renderer->render_height * player->plane_height - line_height / 2.f;
+    wall_top -= (0.5 - player->height) * line_height;
+    float wall_bot = wall_top + line_height;
 
     wall_x -= (int)wall_x;
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
@@ -167,38 +207,48 @@ void *draw_stripe(void *void_args) {
     if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
       tex_x = wall_texture.texture.width - tex_x - 1;
 
-    float draw_start = -line_height / 2.f + renderer->render_height / 2.f - 1; // - 1 for rounding error
-    int y_start = fmaxf(0, draw_start);
-    int y_end = fminf(draw_start + line_height, renderer->render_height);
-    Color tint = get_point_light_value(WHITE, light_source, wall_stripe_position, map);
+    int y_start = fmaxf(0, wall_top);
+    int y_end = fminf(wall_top + line_height, renderer->render_height);
+    Color tint = get_point_light_value(wall_stripe_position, map);
     if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
     for (int y = y_start; y < y_end; ++y) {
-      float y_percentage = (y - draw_start) / line_height;
+      float y_percentage = (y - wall_top) / line_height;
       int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
       draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
     }
 
     for (int y = 0; y < wall_top; ++y) {
-      float ray_length = (renderer->render_height / 2.f) / (renderer->render_height / 2.f -  y);
+      float ray_length = renderer->render_height * (1 - player->height) / (renderer->render_height * player->plane_height -  y);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile tile = get_tile_at_point(map, texture_pos);
-      Color tint = get_point_light_value(WHITE, light_source, texture_pos, map);
+      Color tint = get_point_light_value(texture_pos, map);
+
+      TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
+      texture_pos.x -= (int)texture_pos.x;
+      texture_pos.y -= (int)texture_pos.y;
+
+      int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
+      int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
+
+      draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
+    }
+
+    for (int y = fmaxf(0, wall_bot); y < renderer->render_height; ++y) {
+      float ray_length = (renderer->render_height * player->height) / (y - renderer->render_height * player->plane_height);
+      Vector2 texture_pos =
+        Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
+      MapTile tile = get_tile_at_point(map, texture_pos);
+      Color tint = get_point_light_value(texture_pos, map);
 
       TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
-      TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
       int floor_tex_x = texture_pos.x * floor_texture.texture.width;
       int floor_tex_y = texture_pos.y * floor_texture.texture.height;
-      int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
-      int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
-      float distance_to_screen_center = renderer->render_height / 2.f - y;
-      int mirrored_y = y + distance_to_screen_center * 2;
 
-      draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
-      draw_pixel(renderer, x, mirrored_y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), tint);
+      draw_pixel(renderer, x, y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), tint);
     }
   }
   pthread_exit(NULL);
@@ -213,17 +263,16 @@ void draw_world(Renderer *renderer, Player *player, Map *map) {
     thread_args[i].map = map;
     thread_args[i].player = player;
     thread_args[i].start = offset * i;
+    thread_args[i].end = offset * (i + 1);
     if (leftover > 0 && i == render_thread_count - 1)
-      thread_args[i].end = offset * i + leftover;
-    else
-      thread_args[i].end = offset * (i + 1);
+      thread_args[i].end += leftover;
     pthread_create(threads + i, NULL, draw_stripe, thread_args + i);
   }
   for (int i = 0; i < render_thread_count; ++i)
     pthread_join(threads[i], NULL);
 
-  UpdateTexture(renderer->render_texture, renderer->screen_buffer);
-  DrawTexturePro(renderer->render_texture, (Rectangle){0, 0, renderer->render_height, -renderer->render_width}, (Rectangle){0, 0, renderer->screen_height, renderer->screen_width}, (Vector2){0,renderer->screen_width}, 90, WHITE);
+  UpdateTexture(renderer->buffer_texture, renderer->screen_buffer);
+  DrawTexturePro(renderer->buffer_texture, (Rectangle){0, 0, renderer->render_height, -renderer->render_width}, (Rectangle){0, 0, renderer->render_height, renderer->render_width}, (Vector2){0,renderer->render_width}, 90, WHITE);
 }
 
 void draw_skybox(Renderer *renderer, Player *player, Map *map) {
@@ -233,16 +282,65 @@ void draw_skybox(Renderer *renderer, Player *player, Map *map) {
   float angle_percentage = player_angle / (2*PI);
   DrawTexturePro(skybox_texture,
                  (Rectangle){angle_percentage * skybox_texture.width, 0, skybox_texture.width/4.f, skybox_texture.height},
-                 (Rectangle){0, 0, renderer->screen_width, renderer->screen_height/2.f},
+                 (Rectangle){0, 0, renderer->render_width, renderer->render_height * player->plane_height},
                  Vector2Zero(), 0, WHITE);
 }
 
+void draw_sprites(Renderer *renderer, Player *player) {
+  sort_sprites(player, &renderer->sprites);
+  for (int i = 0; i < renderer->sprites.count; ++i) {
+    Sprite sprite = renderer->sprites.items[i];
+    Vector2 sprite_pos =
+      Vector2Subtract(renderer->sprites.items[i].position, player->position);
+    TexturePixels sprite_texture = get_texture(&renderer->textures, sprite.texture_id);
+    float inverse_determinant = 1.0f / (player->camera_plane.x * player->direction.y - player->direction.x * player->camera_plane.y);
+
+    float transform_x = inverse_determinant * (player->direction.y * sprite_pos.x - player->direction.x * sprite_pos.y);
+    float transform_y = inverse_determinant * (-player->camera_plane.y * sprite_pos.x + player->camera_plane.x * sprite_pos.y);
+
+    int sprite_screen_x = (renderer->render_width / 2.f) * (1 + transform_x / transform_y);
+
+    int sprite_height = fabs(renderer->render_height / transform_y);
+    int sprite_width = fabs( renderer->render_height / transform_y);
+
+    int draw_start_x = -sprite_width / 2.f + sprite_screen_x;
+    if(draw_start_x < 0) draw_start_x = 0;
+    int draw_end_x = sprite_width / 2.f + sprite_screen_x;
+
+    int draw_start_y = -sprite_height / 2.f + renderer->render_height * (player->plane_height);
+    draw_start_y -= (0.5 - player->height) * (renderer->render_height / transform_y);
+
+    int drawEndY = sprite_height / 2.f + renderer->render_height * (player->plane_height);
+    if(drawEndY >= renderer->render_height) drawEndY = renderer->render_height - 1;
+
+
+
+    if(draw_end_x >= renderer->render_width) draw_end_x = renderer->render_width - 1;
+    for(int stripe = draw_start_x; stripe < draw_end_x; stripe++)
+      {
+        int texX = (256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * sprite_texture.texture.width / sprite_width) / 256;
+        if (transform_y > 0 && stripe > 0 && stripe < renderer->render_width &&
+            transform_y < z_buffer[stripe]) {
+
+          Rectangle tex_stripe = {texX, 0, 1, sprite_texture.texture.height};
+          Rectangle world_stripe = {stripe, draw_start_y, 1, sprite_height};
+          DrawTexturePro(sprite_texture.texture, tex_stripe, world_stripe,
+                         Vector2Zero(), 0, WHITE);
+        }
+      }
+  }
+}
+
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
-  BeginDrawing();
+  BeginTextureMode(renderer->render_texture);
   ClearBackground(BLACK);
   draw_skybox(renderer, player, map);
   draw_world(renderer, player, map);
+  draw_sprites(renderer, player);
   DrawFPS(0, 0);
+  EndTextureMode();
+  BeginDrawing();
+  DrawTexturePro(renderer->render_texture.texture, (Rectangle){0,0,renderer->render_width, -renderer->render_height}, (Rectangle){0,0,renderer->screen_width, renderer->screen_height}, Vector2Zero(), 0, WHITE);
   EndDrawing();
 }
 

@@ -17,6 +17,10 @@ void player_move(Player *player, Vector2 direction, float multiplier) {
         Vector2Scale(direction, player->speed * multiplier * delta_time));
 }
 
+void player_pitch(Player *player, float amount) {
+  player->plane_height = Clamp(player->plane_height + amount, 0, 1);
+}
+
 void player_rotate(Player *player, float amount) {
     player->direction = Vector2Rotate(
         player->direction, player->rotation_speed * amount);
@@ -31,6 +35,8 @@ Player create_new_player(Vector2 initial_position, PlayerDirection initial_direc
         .speed = 2,
         .size = 0.3,
         .rotation_speed = 0.001,
+        .plane_height = 0.5,
+        .height = 0.5,
     };
     Vector2 direction = {0};
     Vector2 camera_plane = {0};
