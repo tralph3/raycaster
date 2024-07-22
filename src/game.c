@@ -40,7 +40,7 @@ Game create_new_game(void) {
   Map map = load_map("./assets/maps/test.map");
   gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
   gui_settings.main_background = BLUE;
-  Renderer renderer;
+  Renderer renderer = {0};
   init_renderer(&renderer);
   Game game = {
     .map = map,
