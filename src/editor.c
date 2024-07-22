@@ -8,6 +8,8 @@
 #include <rlgl.h>
 #include <stdlib.h>
 
+Vector2 rectangle_tool_start_pos = {-1, -1};
+
 void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
   Texture2D wall_texture = get_texture(&renderer->textures, tile->wall_id).texture;
   Texture2D ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id).texture;
@@ -125,15 +127,75 @@ void place_tile(Vector2 position, MapEditor *editor) {
   set_tile_at_point(editor->map, position, tile);
 }
 
+void editor_tool_pencil(MapEditor *editor) {
+  Vector2 mouse_pos_in_world =
+    GetScreenToWorld2D(GetMousePosition(), editor->camera);
+  Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
+  place_tile(pointed_tile, editor);
+}
+
+#include <stdio.h>
+void editor_tool_rectangle(MapEditor *editor) {
+  if (IsMouseButtonPressed(0) && !is_in_bounds(editor->map, rectangle_tool_start_pos)) {
+    Vector2 mouse_pos_in_world = GetScreenToWorld2D(GetMousePosition(), editor->camera);
+    Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
+    if (is_in_bounds(editor->map, pointed_tile))
+      rectangle_tool_start_pos = pointed_tile;
+  }
+  if (!is_in_bounds(editor->map, rectangle_tool_start_pos))
+    return;
+
+  if (IsKeyDown(KEY_ESCAPE)) {
+    rectangle_tool_start_pos = (Vector2){-1, -1};
+    return;
+  }
+
+  if (IsMouseButtonReleased(0)) {
+    Vector2 mouse_pos_in_world = GetScreenToWorld2D(GetMousePosition(), editor->camera);
+    Vector2 rectangle_tool_end_pos = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
+    if (!is_in_bounds(editor->map, rectangle_tool_end_pos)) {
+      rectangle_tool_start_pos = (Vector2){-1, -1};
+      return;
+    }
+    int area_start_x;
+    int area_start_y;
+    if (rectangle_tool_start_pos.x < rectangle_tool_end_pos.x) {
+      area_start_x = rectangle_tool_start_pos.x;
+    } else {
+      area_start_x = rectangle_tool_end_pos.x;
+    }
+    if (rectangle_tool_start_pos.y < rectangle_tool_end_pos.y) {
+      area_start_y = rectangle_tool_start_pos.y;
+    } else {
+      area_start_y = rectangle_tool_end_pos.y;
+    }
+    int area_width = fabs(rectangle_tool_start_pos.x - rectangle_tool_end_pos.y);
+    int area_height = fabs(rectangle_tool_start_pos.y - rectangle_tool_end_pos.y);
+    for (int y = area_start_y; y < area_height; ++y) {
+      for (int x = area_start_x; x < area_width; ++x) {
+        place_tile((Vector2){x, y}, editor);
+      }
+    }
+    rectangle_tool_start_pos = (Vector2){-1, -1};
+  }
+}
+
 void editor_input(MapEditor *editor) {
   Vector2 mouse_delta = GetMouseDelta();
   Camera2D *camera = &editor->camera;
 
   if (IsMouseButtonDown(0)) {
-      Vector2 mouse_pos_in_world =
-        GetScreenToWorld2D(GetMousePosition(), editor->camera);
-      Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
-      place_tile(pointed_tile, editor);
+    switch (editor->current_tool) {
+    case EDITOR_TOOL_PENCIL:
+      editor_tool_pencil(editor);
+      break;
+    case EDITOR_TOOL_RECTANGLE:
+      // TODO: This whole function is broken because raylib doesn't properly detect mouse button input
+      editor_tool_rectangle(editor);
+      break;
+    default:
+      break;
+    }
   }
 
   if (IsMouseButtonDown(2))
