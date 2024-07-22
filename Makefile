@@ -1,28 +1,34 @@
 CC:=gcc
-INCLUDE:=-I./include
-CFLAGS:=-Wall -Wextra -pedantic -lm $(INCLUDE) $(shell pkg-config --cflags --libs raylib)
+INCLUDE:=-I./include -I./raylib/src/ -L./raylib/src
+CFLAGS:=-Wall -Wextra -pedantic -lraylib -lm $(INCLUDE)
 FILES:=$(wildcard src/*.c)
 DUSE_WAYLAND_DISPLAY=TRUE
 
+.PHONY: prepare raylib
+
 all: prepare main
 
-prepare:
+prepare: raylib
 	mkdir -p build
+
+raylib:
+	make -C ./raylib/src PLATFORM=PLATFORM_DESKTOP
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^
 
 main: $(FILES)
-	$(CC) $(CFLAGS) -o build/$@ $^
+	$(CC) -o build/$@ $^ $(CFLAGS)
 
 debug: $(FILES)
-	$(CC) $(CFLAGS) -ggdb -o build/$@ $^
+	$(CC) -ggdb -o build/$@ $^ $(CFLAGS)
 
 release: $(FILES)
-	$(CC) $(CFLAGS) -O2 -o build/$@ $^
+	$(CC) -O2 -o build/$@ $^ $(CFLAGS)
 
 profile: $(FILES)
-	$(CC) $(CFLAGS) -pg -o build/$@ $^
+	$(CC) -pg -o build/$@ $^ $(CFLAGS)
 
 clean:
+	make -C ./raylib/src clean
 	rm -rf ./build

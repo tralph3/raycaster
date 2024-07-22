@@ -6,14 +6,167 @@
       "-Wall",
       "-Wextra",
       "-pedantic",
-      "-Werror",
       "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/editor.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/editor.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/game.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/game.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/gui.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/gui.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/input.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/input.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
       "-o",
       "build/main",
       "src/main.c"
     ],
     "directory": "/home/tralph3/Projects/raycaster",
     "file": "/home/tralph3/Projects/raycaster/src/main.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/map.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/map.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/physics.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/physics.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/player.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/player.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/renderer.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/renderer.c",
+    "output": "/home/tralph3/Projects/raycaster/build/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-I./include",
+      "-I./raylib/src/",
+      "-o",
+      "build/main",
+      "src/textures.c"
+    ],
+    "directory": "/home/tralph3/Projects/raycaster",
+    "file": "/home/tralph3/Projects/raycaster/src/textures.c",
     "output": "/home/tralph3/Projects/raycaster/build/main"
   }
 ]
