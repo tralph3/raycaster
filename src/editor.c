@@ -58,7 +58,7 @@ void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapT
 void draw_current_tile(Renderer *renderer, MapEditor *editor) {
   Texture2D tile_texture = get_texture(&renderer->textures, editor->current_tile).texture;
   Rectangle source = {0, 0, tile_texture.width, tile_texture.height};
-  Rectangle destination = {renderer->screen_width - TILE_SIZE * 5 - 10, renderer->render_height - TILE_SIZE * 5 - 10, TILE_SIZE * 5, TILE_SIZE * 5};
+  Rectangle destination = {renderer->screen_width - TILE_SIZE * 5 - 10, renderer->screen_height - TILE_SIZE * 5 - 10, TILE_SIZE * 5, TILE_SIZE * 5};
   DrawTexturePro(tile_texture, source, destination, Vector2Zero(), 0, WHITE);
 }
 

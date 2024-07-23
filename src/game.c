@@ -38,8 +38,8 @@ Game create_new_game(void) {
   state_test_map.next_state = &state_editor;
 
   Map map = load_map("./assets/maps/test.map");
-  gui_settings.font = LoadFont("./assets/fonts/nonexistentfont");
-  gui_settings.main_background = BLUE;
+  gui_settings.font = GetFontDefault();
+  gui_settings.main_background = RED;
   Renderer renderer = {0};
   init_renderer(&renderer);
   Game game = {
