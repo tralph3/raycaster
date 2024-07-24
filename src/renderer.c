@@ -24,7 +24,7 @@ typedef struct {
   Map *map;
   int start;
   int end;
-} DrawStripeArgs;
+} DrawSectionArgs;
 
 typedef struct {
   Vector2 position;
@@ -42,13 +42,13 @@ LightSource light_source5 = {
 LightSource light_source1 = {
   {10.5, 11.5},
   20,
-  10,
-  RED,
+  13,
+  LIME,
 };
 
 float *z_buffer = NULL;
 pthread_t *threads = NULL;
-DrawStripeArgs *thread_args = NULL;
+DrawSectionArgs *thread_args = NULL;
 
 LightSource light_sources[5] = {0};
 
@@ -57,54 +57,54 @@ bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
   end = Vector2Add(end, Vector2Scale(ray_dir, -0.001));
   Vector2 map_pos = (Vector2){(int)start.x, (int)start.y};
   Vector2 end_map_pos = (Vector2){(int)end.x, (int)end.y};
-    float p_percentage_x = start.x - map_pos.x;
-    float p_percentage_y = start.y - map_pos.y;
-    int step_x;
-    int step_y;
-    bool hit = false;
+  float p_percentage_x = start.x - map_pos.x;
+  float p_percentage_y = start.y - map_pos.y;
+  int step_x;
+  int step_y;
+  bool hit = false;
 
-    Vector2 delta_dist = {
-      .x = ray_dir.x == 0 ? 1e30 : fabs(1 / ray_dir.x),
-      .y = ray_dir.y == 0 ? 1e30 : fabs(1 / ray_dir.y),
-    };
-    Vector2 side_dist;
-    if (ray_dir.x < 0) {
-      step_x = -1;
-      side_dist.x = p_percentage_x * delta_dist.x;
+  Vector2 delta_dist = {
+    .x = ray_dir.x == 0 ? 1e30 : fabs(1 / ray_dir.x),
+    .y = ray_dir.y == 0 ? 1e30 : fabs(1 / ray_dir.y),
+  };
+  Vector2 side_dist;
+  if (ray_dir.x < 0) {
+    step_x = -1;
+    side_dist.x = p_percentage_x * delta_dist.x;
+  } else {
+    step_x = 1;
+    side_dist.x = (1 - p_percentage_x) * delta_dist.x;
+  }
+  if (ray_dir.y < 0) {
+    step_y = -1;
+    side_dist.y = p_percentage_y * delta_dist.y;
+  } else {
+    step_y = 1;
+    side_dist.y = (1 - p_percentage_y) * delta_dist.y;
+  }
+  while (!hit) {
+    if(map_pos.x == end_map_pos.x && map_pos.y == end_map_pos.y)
+      break;
+    if (side_dist.x < side_dist.y) {
+      side_dist.x += delta_dist.x;
+      map_pos.x += step_x;
     } else {
-      step_x = 1;
-      side_dist.x = (1 - p_percentage_x) * delta_dist.x;
+      side_dist.y += delta_dist.y;
+      map_pos.y += step_y;
     }
-    if (ray_dir.y < 0) {
-      step_y = -1;
-      side_dist.y = p_percentage_y * delta_dist.y;
-    } else {
-      step_y = 1;
-      side_dist.y = (1 - p_percentage_y) * delta_dist.y;
-    }
-    while (!hit) {
-      if(map_pos.x == end_map_pos.x && map_pos.y == end_map_pos.y)
-        break;
-      if (side_dist.x < side_dist.y) {
-        side_dist.x += delta_dist.x;
-        map_pos.x += step_x;
-      } else {
-        side_dist.y += delta_dist.y;
-        map_pos.y += step_y;
-      }
 
-      MapTile tile = get_tile_at_point(map, map_pos);
-      switch (tile.type) {
+    MapTile tile = get_tile_at_point(map, map_pos);
+    switch (tile.type) {
       /* case TILE_TYPE_THIN_WALL: */
       /*   break; */
-      case TILE_TYPE_WALL: {
-        return false;
-      } break;
-      default:
-        break;
-      }
+    case TILE_TYPE_WALL: {
+      return false;
+    } break;
+    default:
+      break;
     }
-    return true;
+  }
+  return true;
 }
 
 Color get_point_light_value(Vector2 position, Map *map) {
@@ -124,7 +124,7 @@ Color get_point_light_value(Vector2 position, Map *map) {
   tint = ColorBrightness(tint, max_factor);
   MapTile tile = get_tile_at_point(map, position);
   if (tile.ceiling_id == 0 && tile.type != TILE_TYPE_WALL)
-    tint = ColorBrightness(tint, natural_light * 2);
+    tint = ColorBrightness(tint, natural_light + 0.2);
   else
     tint = ColorBrightness(tint, natural_light);
   return tint;
@@ -136,14 +136,14 @@ void init_renderer(Renderer *renderer) {
   render_thread_count = get_nprocs();
   /* render_thread_count = 1; */
   threads = malloc(render_thread_count * sizeof(pthread_t));
-  thread_args = malloc(render_thread_count * sizeof(DrawStripeArgs));
+  thread_args = malloc(render_thread_count * sizeof(DrawSectionArgs));
 
   int current_monitor = GetCurrentMonitor();
   renderer->screen_width = GetMonitorWidth(current_monitor);
   renderer->screen_height = GetMonitorHeight(current_monitor);
 
-  set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor));
-  /* set_render_resolution(renderer, 320, 200); */
+  /* set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor)); */
+  set_render_resolution(renderer, 640, 480);
   TextureArr textures = load_all_textures();
   renderer->textures = textures;
   SpriteArr sprites = {0};
@@ -169,9 +169,17 @@ void set_render_resolution(Renderer *renderer, unsigned int width, unsigned int 
 
   free(renderer->screen_buffer);
   renderer->screen_buffer = malloc(renderer->render_width * renderer->render_height * sizeof(Color));
+  if (renderer->screen_buffer == NULL) {
+    fprintf(stderr, "ERROR: Could not allocate memory for screen_buffer\n");
+    exit(1);
+  }
 
   free(z_buffer);
   z_buffer = malloc(renderer->render_width * sizeof(float));
+  if (z_buffer == NULL) {
+    fprintf(stderr, "ERROR: Could not allocate memory for z_buffer\n");
+    exit(1);
+  }
 }
 
 inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint) {
@@ -179,8 +187,8 @@ inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint
   renderer->screen_buffer[y + x * renderer->render_height] = color;
 }
 
-void *draw_stripe(void *void_args) {
-  DrawStripeArgs *args = void_args;
+void *draw_section(void *void_args) {
+  DrawSectionArgs *args = void_args;
   Player *player = args->player;
   Renderer *renderer = args->renderer;
   Map *map = args->map;
@@ -198,9 +206,8 @@ void *draw_stripe(void *void_args) {
     int side;
     float perpendicular_wall_dist;
     MapTile wall_tile;
-    float camera_x = x * 2 / (float)renderer->render_width - 1;
-    Vector2 ray_dir = Vector2Add(
-                                 player->direction, Vector2Scale(player->camera_plane, camera_x));
+    float camera_x = (x << 1) / (float)renderer->render_width - 1;
+    Vector2 ray_dir = Vector2Add(player->direction, Vector2Scale(player->camera_plane, camera_x));
 
     Vector2 delta_dist = {
       .x = ray_dir.x == 0 ? 1e30 : fabs(1 / ray_dir.x),
@@ -234,12 +241,11 @@ void *draw_stripe(void *void_args) {
 
       wall_tile = get_tile_at_point(map, map_pos);
       switch (wall_tile.type) {
-      /* case TILE_TYPE_THIN_WALL: */
-      /*   break; */
-      case TILE_TYPE_WALL: {
+        /* case TILE_TYPE_THIN_WALL: */
+        /*   break; */
+      case TILE_TYPE_WALL:
         hit = true;
-
-      } break;
+        break;
       default:
         break;
       }
@@ -263,10 +269,10 @@ void *draw_stripe(void *void_args) {
     }
 
     z_buffer[x] = perpendicular_wall_dist;
-    float line_height = renderer->render_height / perpendicular_wall_dist;
-    float wall_top = renderer->render_height * player->plane_height - line_height / 2.f;
+    int line_height = renderer->render_height / perpendicular_wall_dist;
+    int wall_top = renderer->render_height * player->plane_height - line_height / 2.f;
     wall_top -= (0.5 - player->height) * line_height;
-    float wall_bot = wall_top + line_height;
+    int wall_bot = wall_top + line_height;
 
     wall_x -= (int)wall_x;
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
@@ -274,18 +280,10 @@ void *draw_stripe(void *void_args) {
     if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
       tex_x = wall_texture.texture.width - tex_x - 1;
 
-    int y_start = fmaxf(0, wall_top);
-    int y_end = fminf(wall_top + line_height, renderer->render_height);
-    Color tint = get_point_light_value(wall_stripe_position, map);
-    if (side == SIDE_LEFT) tint = ColorBrightness(tint, -0.2f);
-    for (int y = y_start; y < y_end; ++y) {
-      float y_percentage = (y - wall_top) / line_height;
-      int tex_y = fmaxf(0, y_percentage * wall_texture.texture.height);
-      draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
-    }
-
+    float center = renderer->render_height * player->plane_height;
+    float height = renderer->render_height * (1 - player->height);
     for (int y = 0; y < wall_top; ++y) {
-      float ray_length = renderer->render_height * (1 - player->height) / (renderer->render_height * player->plane_height -  y);
+      float ray_length =  height / (center -  y);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile tile = get_tile_at_point(map, texture_pos);
@@ -301,8 +299,19 @@ void *draw_stripe(void *void_args) {
       draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
     }
 
-    for (int y = fmaxf(0, wall_bot); y < renderer->render_height; ++y) {
-      float ray_length = (renderer->render_height * player->height) / (y - renderer->render_height * player->plane_height);
+    int y_start = wall_top < 0 ? 0 : wall_top;
+    int y_end = wall_bot > renderer->render_height ? renderer->render_height : wall_bot;
+    Color tint = get_point_light_value(wall_stripe_position, map);
+    tint = ColorBrightness(tint, -0.2f * side);
+    for (int y = y_start; y <= y_end; ++y) {
+      float y_percentage = (float)(y - wall_top) / line_height;
+      int tex_y = y_percentage * wall_texture.texture.height;
+      draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
+    }
+
+    height = renderer->render_height * player->height;
+    for (int y = renderer->render_height; y > wall_bot; --y) {
+      float ray_length = height / (y - center);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile tile = get_tile_at_point(map, texture_pos);
@@ -330,10 +339,8 @@ void draw_world(Renderer *renderer, Player *player, Map *map) {
     thread_args[i].map = map;
     thread_args[i].player = player;
     thread_args[i].start = offset * i;
-    thread_args[i].end = offset * (i + 1);
-    if (leftover > 0 && i == render_thread_count - 1)
-      thread_args[i].end += leftover;
-    pthread_create(threads + i, NULL, draw_stripe, thread_args + i);
+    thread_args[i].end = offset * (i + 1) + (leftover > 0 && i == render_thread_count - 1) * leftover;
+    pthread_create(threads + i, NULL, draw_section, thread_args + i);
   }
   for (int i = 0; i < render_thread_count; ++i)
     pthread_join(threads[i], NULL);
@@ -380,8 +387,6 @@ void draw_sprites(Renderer *renderer, Player *player) {
     int drawEndY = sprite_height / 2.f + renderer->render_height * (player->plane_height);
     if(drawEndY >= renderer->render_height) drawEndY = renderer->render_height - 1;
 
-
-
     if(draw_end_x >= renderer->render_width) draw_end_x = renderer->render_width - 1;
     for(int stripe = draw_start_x; stripe < draw_end_x; stripe++)
       {
@@ -392,7 +397,7 @@ void draw_sprites(Renderer *renderer, Player *player) {
           Rectangle tex_stripe = {texX, 0, 1, sprite_texture.texture.height};
           Rectangle world_stripe = {stripe, draw_start_y, 1, sprite_height};
           DrawTexturePro(sprite_texture.texture, tex_stripe, world_stripe,
-                         Vector2Zero(), 0, WHITE);
+                         Vector2Zero(), 0, ORANGE);
         }
       }
   }
@@ -400,6 +405,7 @@ void draw_sprites(Renderer *renderer, Player *player) {
 
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
   light_sources[0].intensity = 3 + (random() % 10) / 20.f;
+  light_sources[1].intensity = (sin(GetTime()) + 1) * 10;
   BeginTextureMode(renderer->render_texture);
   ClearBackground(BLACK);
   draw_skybox(renderer, player, map);

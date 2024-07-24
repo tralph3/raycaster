@@ -8,7 +8,7 @@
 typedef enum {
   TILE_TYPE_EMPTY = 0,
   TILE_TYPE_WALL,
-  TILE_TYPE_THIN_WALL,
+  TILE_TYPE_VOXEL_WALL,
 } __attribute__ ((__packed__)) TileType;
 
 

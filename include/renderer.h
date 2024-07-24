@@ -25,7 +25,7 @@ typedef struct {
 } Renderer;
 
 void sort_sprites(Player*, SpriteArr*);
-void *draw_stripe(void*);
+void *draw_section(void*);
 void draw_world(Renderer *, Player *, Map *);
 void draw_everything(Renderer *, Player *, Map *);
 void draw_sprites(Renderer *, Player *);
