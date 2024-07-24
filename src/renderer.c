@@ -54,7 +54,7 @@ LightSource light_sources[5] = {0};
 
 bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
   Vector2 ray_dir = Vector2Normalize(Vector2Subtract(end, start));
-  end = Vector2Add(end, Vector2Scale(ray_dir, -0.001));
+  end = Vector2Add(end, Vector2Scale(ray_dir, -0.0001));
   Vector2 map_pos = (Vector2){(int)start.x, (int)start.y};
   Vector2 end_map_pos = (Vector2){(int)end.x, (int)end.y};
   float p_percentage_x = start.x - map_pos.x;
@@ -269,10 +269,10 @@ void *draw_section(void *void_args) {
     }
 
     z_buffer[x] = perpendicular_wall_dist;
-    int line_height = renderer->render_height / perpendicular_wall_dist;
-    int wall_top = renderer->render_height * player->plane_height - line_height / 2.f;
+    float line_height = renderer->render_height / perpendicular_wall_dist;
+    float wall_top = renderer->render_height * player->plane_height - line_height / 2.f;
     wall_top -= (0.5 - player->height) * line_height;
-    int wall_bot = wall_top + line_height;
+    float wall_bot = wall_top + line_height;
 
     wall_x -= (int)wall_x;
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
@@ -293,8 +293,8 @@ void *draw_section(void *void_args) {
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
-      int ceiling_tex_x = texture_pos.x * ceiling_texture.texture.width;
-      int ceiling_tex_y = texture_pos.y * ceiling_texture.texture.height;
+      int ceiling_tex_x = texture_pos.x * (ceiling_texture.texture.width - 1);
+      int ceiling_tex_y = texture_pos.y * (ceiling_texture.texture.height - 1);
 
       draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
     }
@@ -304,8 +304,8 @@ void *draw_section(void *void_args) {
     Color tint = get_point_light_value(wall_stripe_position, map);
     tint = ColorBrightness(tint, -0.2f * side);
     for (int y = y_start; y <= y_end; ++y) {
-      float y_percentage = (float)(y - wall_top) / line_height;
-      int tex_y = y_percentage * wall_texture.texture.height;
+      float y_percentage = Clamp((y - (int)wall_top) / line_height, 0, 1.0);
+      int tex_y = y_percentage * (wall_texture.texture.height - 1);
       draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
     }
 
@@ -321,8 +321,8 @@ void *draw_section(void *void_args) {
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
-      int floor_tex_x = texture_pos.x * floor_texture.texture.width;
-      int floor_tex_y = texture_pos.y * floor_texture.texture.height;
+      int floor_tex_x = texture_pos.x * (floor_texture.texture.width - 1);
+      int floor_tex_y = texture_pos.y * (floor_texture.texture.height - 1);
 
       draw_pixel(renderer, x, y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), tint);
     }
