@@ -1,6 +1,6 @@
 CC:=gcc
 INCLUDE:=-I./include -I./raylib/src/ -L./raylib/src
-CFLAGS:=-Wall -Wextra -pedantic -lraylib -lm $(INCLUDE)
+CFLAGS:=-ffast-math -Wall -Wextra -pedantic -lraylib -lm $(INCLUDE)
 FILES:=$(wildcard src/*.c)
 DUSE_WAYLAND_DISPLAY=TRUE
 
@@ -24,7 +24,7 @@ debug: $(FILES)
 	$(CC) -ggdb -o build/$@ $^ $(CFLAGS)
 
 release: $(FILES)
-	$(CC) -O2 -o build/$@ $^ $(CFLAGS)
+	$(CC) -O3 -o build/$@ $^ $(CFLAGS)
 
 profile: $(FILES)
 	$(CC) -pg -o build/$@ $^ $(CFLAGS)
