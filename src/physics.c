@@ -1,6 +1,7 @@
 #include "map.h"
 #include "player.h"
 
+#include <stdlib.h>
 #include <raymath.h>
 #include <stdbool.h>
 
@@ -15,11 +16,17 @@ bool is_square_colliding(Vector2 square_position, float square_size, Map *map) {
                                          square_position.y + half_square_size};
   Vector2 bottom_right_corner =
     Vector2AddValue(square_position, half_square_size);
-  MapTile top_left_tile = get_tile_at_point(map, top_left_corner);
-  MapTile top_right_tile = get_tile_at_point(map, top_right_corner);
-  MapTile bottom_left_tile = get_tile_at_point(map, bottom_left_corner);
-  MapTile bottom_right_tile = get_tile_at_point(map, bottom_right_corner);
-  return top_left_tile.type == TILE_TYPE_WALL || top_right_tile.type == TILE_TYPE_WALL || bottom_left_tile.type == TILE_TYPE_WALL || bottom_right_tile.type == TILE_TYPE_WALL;
+
+  MapTile *top_left_tile;
+  GET_TILE_AT_POINT_DEFAULT_WALL(top_left_tile, map, top_left_corner);
+  MapTile *top_right_tile;
+  GET_TILE_AT_POINT_DEFAULT_WALL(top_right_tile, map, top_right_corner);
+  MapTile *bottom_left_tile;
+  GET_TILE_AT_POINT_DEFAULT_WALL(bottom_left_tile, map, bottom_left_corner);
+  MapTile *bottom_right_tile;
+  GET_TILE_AT_POINT_DEFAULT_WALL(bottom_right_tile, map, bottom_right_corner);
+
+  return top_left_tile->type == TILE_TYPE_WALL || top_right_tile->type == TILE_TYPE_WALL || bottom_left_tile->type == TILE_TYPE_WALL || bottom_right_tile->type == TILE_TYPE_WALL;
 }
 
 void check_collission(Player *player, Map *map) {

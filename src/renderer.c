@@ -37,13 +37,13 @@ LightSource light_source5 = {
   {3.5, 3.5},
   10,
   5,
-  ORANGE,
+  { 255, 161, 0, 255 },
 };
 LightSource light_source1 = {
   {10.5, 11.5},
   20,
   13,
-  LIME,
+  { 0, 158, 47, 255 },
 };
 
 float *z_buffer = NULL;
@@ -54,7 +54,7 @@ LightSource light_sources[5] = {0};
 
 bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
   Vector2 ray_dir = Vector2Normalize(Vector2Subtract(end, start));
-  end = Vector2Add(end, Vector2Scale(ray_dir, -0.0001));
+  end = Vector2Add(end, Vector2Scale(ray_dir, -0.0001f));
   Vector2 map_pos = (Vector2){(int)start.x, (int)start.y};
   Vector2 end_map_pos = (Vector2){(int)end.x, (int)end.y};
   float p_percentage_x = start.x - map_pos.x;
@@ -93,8 +93,9 @@ bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
       map_pos.y += step_y;
     }
 
-    MapTile tile = get_tile_at_point(map, map_pos);
-    switch (tile.type) {
+    MapTile *tile;
+    GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, map_pos);
+    switch (tile->type) {
       /* case TILE_TYPE_THIN_WALL: */
       /*   break; */
     case TILE_TYPE_WALL: {
@@ -122,8 +123,10 @@ Color get_point_light_value(Vector2 position, Map *map) {
     }
   }
   tint = ColorBrightness(tint, max_factor);
-  MapTile tile = get_tile_at_point(map, position);
-  if (tile.ceiling_id == 0 && tile.type != TILE_TYPE_WALL)
+
+  MapTile *tile;
+  GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, position);
+  if (tile->ceiling_id == 0 && tile->type != TILE_TYPE_WALL)
     tint = ColorBrightness(tint, natural_light + 0.2);
   else
     tint = ColorBrightness(tint, natural_light);
@@ -142,7 +145,7 @@ void init_renderer(Renderer *renderer) {
   renderer->screen_width = GetMonitorWidth(current_monitor);
   renderer->screen_height = GetMonitorHeight(current_monitor);
 
-  /* set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor)); */
+  set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor));
   set_render_resolution(renderer, 640, 480);
   TextureArr textures = load_all_textures();
   renderer->textures = textures;
@@ -205,7 +208,7 @@ void *draw_section(void *void_args) {
     float wall_x;
     int side;
     float perpendicular_wall_dist;
-    MapTile wall_tile;
+    MapTile *wall_tile;
     float camera_x = (x << 1) / (float)renderer->render_width - 1;
     Vector2 ray_dir = Vector2Add(player->direction, Vector2Scale(player->camera_plane, camera_x));
 
@@ -239,8 +242,8 @@ void *draw_section(void *void_args) {
         side = SIDE_LEFT;
       }
 
-      wall_tile = get_tile_at_point(map, map_pos);
-      switch (wall_tile.type) {
+      GET_TILE_AT_POINT_DEFAULT_WALL(wall_tile, map, map_pos);
+      switch (wall_tile->type) {
         /* case TILE_TYPE_THIN_WALL: */
         /*   break; */
       case TILE_TYPE_WALL:
@@ -275,7 +278,7 @@ void *draw_section(void *void_args) {
     float wall_bot = wall_top + line_height;
 
     wall_x -= (int)wall_x;
-    TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile.wall_id);
+    TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile->wall_id);
     int tex_x = wall_x * wall_texture.texture.width;
     if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
       tex_x = wall_texture.texture.width - tex_x - 1;
@@ -286,10 +289,11 @@ void *draw_section(void *void_args) {
       float ray_length =  height / (center -  y);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
-      MapTile tile = get_tile_at_point(map, texture_pos);
+      MapTile *tile;
+      GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, texture_pos);
       Color tint = get_point_light_value(texture_pos, map);
 
-      TexturePixels ceiling_texture = get_texture(&renderer->textures, tile.ceiling_id);
+      TexturePixels ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id);
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
@@ -314,10 +318,11 @@ void *draw_section(void *void_args) {
       float ray_length = height / (y - center);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
-      MapTile tile = get_tile_at_point(map, texture_pos);
+      MapTile *tile;
+      GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, texture_pos);
       Color tint = get_point_light_value(texture_pos, map);
 
-      TexturePixels floor_texture = get_texture(&renderer->textures, tile.floor_id);
+      TexturePixels floor_texture = get_texture(&renderer->textures, tile->floor_id);
       texture_pos.x -= (int)texture_pos.x;
       texture_pos.y -= (int)texture_pos.y;
 
@@ -384,17 +389,17 @@ void draw_sprites(Renderer *renderer, Player *player) {
     int draw_start_y = -sprite_height / 2.f + renderer->render_height * (player->plane_height);
     draw_start_y -= (0.5 - player->height) * (renderer->render_height / transform_y);
 
-    int drawEndY = sprite_height / 2.f + renderer->render_height * (player->plane_height);
-    if(drawEndY >= renderer->render_height) drawEndY = renderer->render_height - 1;
+    int draw_end_y = sprite_height / 2.f + renderer->render_height * (player->plane_height);
+    if(draw_end_y >= renderer->render_height) draw_end_y = renderer->render_height - 1;
 
     if(draw_end_x >= renderer->render_width) draw_end_x = renderer->render_width - 1;
     for(int stripe = draw_start_x; stripe < draw_end_x; stripe++)
       {
-        int texX = (256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * sprite_texture.texture.width / sprite_width) / 256;
+        int tex_x = (256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * sprite_texture.texture.width / sprite_width) / 256;
         if (transform_y > 0 && stripe > 0 && stripe < renderer->render_width &&
             transform_y < z_buffer[stripe]) {
 
-          Rectangle tex_stripe = {texX, 0, 1, sprite_texture.texture.height};
+          Rectangle tex_stripe = {tex_x, 0, 1, sprite_texture.texture.height};
           Rectangle world_stripe = {stripe, draw_start_y, 1, sprite_height};
           DrawTexturePro(sprite_texture.texture, tex_stripe, world_stripe,
                          Vector2Zero(), 0, ORANGE);

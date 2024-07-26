@@ -19,7 +19,7 @@ Game create_new_game(void) {
   SetConfigFlags(
                  FLAG_FULLSCREEN_MODE |
                  FLAG_WINDOW_RESIZABLE |
-                 FLAG_VSYNC_HINT |
+                 /* FLAG_VSYNC_HINT | */
                  FLAG_MSAA_4X_HINT
                  );
 
@@ -75,6 +75,7 @@ void game_run(Game *game) {
 }
 
 void state_play_setup(Game *game) {
+  (void)game;
   DisableCursor();
 }
 
@@ -86,11 +87,11 @@ void state_play_loop(Game *game) {
 }
 
 void state_editor_setup(Game *game) {
+  (void)game;
   ShowCursor();
 }
 
 void state_editor_loop(Game *game) {
-
   draw_editor_interface(&game->renderer, &game->editor);
   editor_input(&game->editor);
   if (IsKeyPressed(KEY_T))
@@ -98,6 +99,7 @@ void state_editor_loop(Game *game) {
 }
 
 void state_test_map_setup(Game *game) {
+  (void)game;
   DisableCursor();
 }
 

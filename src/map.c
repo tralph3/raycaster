@@ -41,10 +41,9 @@ void resize_map(Map *map, unsigned int new_width, unsigned int new_height) {
   for (unsigned int y = 0; y < new_height; ++y) {
     for (unsigned int x = 0; x < new_width; ++x) {
       Vector2 map_pos = {x,y};
-      MapTile tile = get_tile_at_point(map, map_pos);
-      if (!is_in_bounds(map, map_pos))
-        tile = (MapTile){0};
-      new_map_data[x + y * new_width] = tile;
+      MapTile *tile;
+      GET_TILE_AT_POINT_DEFAULT_EMPTY(tile, map, map_pos);
+      new_map_data[x + y * new_width] = *tile;
     }
   }
   free(map->data);
@@ -53,18 +52,28 @@ void resize_map(Map *map, unsigned int new_width, unsigned int new_height) {
   map->data = new_map_data;
 }
 
-inline MapTile get_tile_at_point(Map *map, Vector2 position) {
-  if (!is_in_bounds(map, position))
-    return (MapTile){0, 0, 0, TILE_TYPE_WALL};
+inline MapTile *get_tile_at_point(Map *map, Vector2 position) {
+  if (!is_in_bounds(map, &position))
+    return NULL;
   else
-    return map->data[(int)position.x + (int)position.y * map->width];
+    return &map->data[(int)position.x + (int)position.y * map->width];
 }
 
 inline void set_tile_at_point(Map *map, Vector2 position, MapTile tile) {
-  if (is_in_bounds(map, position))
+  if (is_in_bounds(map, &position))
     map->data[(int)position.x + (int)position.y * map->width] = tile;
 }
 
-inline bool is_in_bounds(Map *map, Vector2 position) {
-  return !(position.x < 0 || position.x >= map->width || position.y < 0 || position.y * map->width >= map->size);
+inline bool is_in_bounds(Map *map, Vector2 *position) {
+  // I know it looks stupid but it seems to perform better than to do
+  // this in a single line
+  if (position->x < 0)
+    return false;
+  if (position->x >= map->width)
+    return false;
+  if (position->y < 0)
+    return false;
+  if (position->y * map->width >= map->size)
+    return false;
+  return true;
 }
