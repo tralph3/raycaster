@@ -8,13 +8,17 @@
 void player_move(Player *player, Vector2 direction, float multiplier) {
     float delta_time = GetFrameTime();
     direction = Vector2Normalize(direction);
-    Vector2 fw_movement = Vector2Scale(player->direction, direction.y);
-    Vector2 strafe_movement = Vector2Scale(Vector2Normalize(player->camera_plane), direction.x);
-    direction = Vector2Add(fw_movement, strafe_movement);
+    if (direction.x != 0 || direction.y != 0) {
+        player->velocity = Vector2Scale(direction, player->speed * multiplier * delta_time);
+    } else {
+        player->velocity = Vector2Lerp(player->velocity, Vector2Zero(), 20 * delta_time);
+    }
+
+    Vector2 fw_movement = Vector2Scale(Vector2Normalize(player->direction), player->velocity.y);
+    Vector2 strafe_movement = Vector2Scale(Vector2Normalize(player->camera_plane), player->velocity.x);
+    Vector2 movement = Vector2Add(fw_movement, strafe_movement);
     player->old_position = player->position;
-    player->position = Vector2Add(
-        player->position,
-        Vector2Scale(direction, player->speed * multiplier * delta_time));
+    player->position = Vector2Add(player->position, movement);
 }
 
 void player_pitch(Player *player, float amount) {
@@ -37,6 +41,7 @@ Player create_new_player(Vector2 initial_position, PlayerDirection initial_direc
         .rotation_speed = 0.001,
         .plane_height = 0.5,
         .height = 0.5,
+        .velocity = {0},
     };
     Vector2 direction = {0};
     Vector2 camera_plane = {0};

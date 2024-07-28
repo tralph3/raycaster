@@ -8,6 +8,8 @@
 #include <rlgl.h>
 #include <stdlib.h>
 
+#include <stdio.h>
+
 Vector2 rectangle_tool_start_pos = {-1, -1};
 
 void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapTile *tile) {
@@ -23,7 +25,13 @@ void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapT
     DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, WHITE);
     source.width = wall_texture.width;
     source.height = wall_texture.height;
-    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, ColorAlpha(WHITE, 0.4f));
+    if (tile->type == TILE_TYPE_PLANE_WALL) {
+      Vector2 start = Vector2Add(((PlaneWallArgs*)tile->args)->start, position);
+      Vector2 end = Vector2Add(((PlaneWallArgs*)tile->args)->end, position);
+      DrawLineEx(Vector2Scale(start, TILE_SIZE), Vector2Scale(end, TILE_SIZE), 3, RED);
+    } else {
+      DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, ColorAlpha(WHITE, 0.4f));
+    }
   } break;
   case LAYER_WALL: {
     Rectangle source = {0, 0, floor_texture.width, floor_texture.height};
@@ -32,7 +40,23 @@ void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapT
     DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
     source.width = wall_texture.width;
     source.height = wall_texture.height;
-    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, WHITE);
+    if (tile->type == TILE_TYPE_PLANE_WALL) {
+      Vector2 start = Vector2Scale(Vector2Add(((PlaneWallArgs*)tile->args)->start, position), TILE_SIZE);
+      Vector2 end = Vector2Scale(Vector2Add(((PlaneWallArgs*)tile->args)->end, position), TILE_SIZE);
+      DrawLineEx(start, end, 3, RED);
+      if (GUIButton((Rectangle){start.x - 2, start.y - 2, 4, 4}, "")) {
+        Vector2 mouse_pos = GetScreenToWorld2D(GetMousePosition(), editor->camera);
+        mouse_pos.x /= TILE_SIZE;
+        mouse_pos.y /= TILE_SIZE;
+        mouse_pos = Vector2Clamp(mouse_pos, position, (Vector2){position.x + 1, position.y + 1});
+        mouse_pos.x -= (int)mouse_pos.x;
+        mouse_pos.y -= (int)mouse_pos.y;
+
+        ((PlaneWallArgs*)tile->args)->start = mouse_pos;
+      }
+    } else {
+      DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, WHITE);
+    }
     source.width = ceiling_texture.width;
     source.height = ceiling_texture.height;
     DrawTexturePro(ceiling_texture, source, destination, Vector2Zero(), 0, ColorAlpha(WHITE, 0.2f));
@@ -44,7 +68,13 @@ void draw_map_tile(MapEditor *editor, Renderer *renderer, Vector2 position, MapT
     DrawTexturePro(floor_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.8f));
     source.width = wall_texture.width;
     source.height = wall_texture.height;
-    DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+    if (tile->type == TILE_TYPE_PLANE_WALL) {
+      Vector2 start = Vector2Add(((PlaneWallArgs*)tile->args)->start, position);
+      Vector2 end = Vector2Add(((PlaneWallArgs*)tile->args)->end, position);
+      DrawLineEx(Vector2Scale(start, TILE_SIZE), Vector2Scale(end, TILE_SIZE), 3, RED);
+    } else {
+      DrawTexturePro(wall_texture, source, destination, Vector2Zero(), 0, ColorBrightness(WHITE, -0.6f));
+    }
     source.width = ceiling_texture.width;
     source.height = ceiling_texture.height;
     DrawTexturePro(ceiling_texture, source, destination, Vector2Zero(), 0, WHITE);
@@ -96,23 +126,27 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
   BeginMode2D(editor->camera);
   unsigned int map_width = editor->map->width;
   unsigned int map_height = editor->map->size / editor->map->width;
+  BeginWorldGuiMode(editor->camera);
   for (unsigned int x = 0; x < map_width; ++x) {
     for (unsigned int y = 0; y < map_height; ++y) {
       Vector2 position = {x, y};
-      MapTile *map_tile = get_tile_at_point(editor->map, position);
+      MapTile *map_tile = get_tile_at_point(editor->map, &position);
       draw_map_tile(editor, renderer, (Vector2){x, y}, map_tile);
     }
   }
+  EndWorldGuiMode();
   DrawRectangleLinesEx((Rectangle){0,0, map_width * TILE_SIZE, map_height * TILE_SIZE}, 2, WHITE);
   EndMode2D();
   draw_current_tile(renderer, editor);
   draw_gui(editor, renderer);
+  DrawFPS(0,0);
   EndDrawing();
+  EndGuiFrame();
 }
 
 void place_tile(Vector2 position, MapEditor *editor) {
   if (!is_in_bounds(editor->map, &position)) return;
-  MapTile *tile = get_tile_at_point(editor->map, position);
+  MapTile *tile = get_tile_at_point(editor->map, &position);
   if (editor->layer == LAYER_WALL)
     tile->wall_id = editor->current_tile;
   else if (editor->layer == LAYER_CEILING)
@@ -133,9 +167,8 @@ void editor_tool_pencil(MapEditor *editor) {
   place_tile(pointed_tile, editor);
 }
 
-#include <stdio.h>
 void editor_tool_rectangle(MapEditor *editor) {
-  if (IsMouseButtonPressed(0) && !is_in_bounds(editor->map, &rectangle_tool_start_pos)) {
+  if (GUIIsMouseButtonPressed(0) && !is_in_bounds(editor->map, &rectangle_tool_start_pos)) {
     Vector2 mouse_pos_in_world = GetScreenToWorld2D(GetMousePosition(), editor->camera);
     Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
     if (is_in_bounds(editor->map, &pointed_tile))
@@ -149,7 +182,7 @@ void editor_tool_rectangle(MapEditor *editor) {
     return;
   }
 
-  if (IsMouseButtonReleased(0)) {
+  if (GUIIsMouseButtonReleased(0)) {
     Vector2 mouse_pos_in_world = GetScreenToWorld2D(GetMousePosition(), editor->camera);
     Vector2 rectangle_tool_end_pos = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
     if (!is_in_bounds(editor->map, &rectangle_tool_end_pos)) {
@@ -183,7 +216,7 @@ void editor_input(MapEditor *editor) {
   Vector2 mouse_delta = GetMouseDelta();
   Camera2D *camera = &editor->camera;
 
-  if (IsMouseButtonDown(0)) {
+  if (GUIIsMouseButtonDown(0)) {
     switch (editor->current_tool) {
     case EDITOR_TOOL_PENCIL:
       editor_tool_pencil(editor);
@@ -197,10 +230,10 @@ void editor_input(MapEditor *editor) {
     }
   }
 
-  if (IsMouseButtonDown(2))
+  if (GUIIsMouseButtonDown(2))
     camera->target = Vector2Subtract(camera->target, Vector2Scale(mouse_delta, 1/(camera->zoom)));
 
-  if (IsMouseButtonDown(1)) {
+  if (GUIIsMouseButtonDown(1)) {
     Vector2 mouse_pos_in_world =
       GetScreenToWorld2D(GetMousePosition(), editor->camera);
     Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE,

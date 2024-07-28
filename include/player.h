@@ -9,6 +9,7 @@ typedef struct {
     Vector2 old_position;
     Vector2 direction;
     Vector2 camera_plane;
+    Vector2 velocity;
     float plane_height;
     float speed;
     float size;

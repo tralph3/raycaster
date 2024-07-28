@@ -5,10 +5,10 @@
 #include <math.h>
 #include <raylib.h>
 #include <raymath.h>
-#include <rlgl.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <physics.h>
 #include <sys/sysinfo.h>
 
 int render_thread_count;
@@ -32,19 +32,8 @@ typedef struct {
   float cutoff;
   Color tint;
 } LightSource;
-float natural_light = 0.2f;
-LightSource light_source5 = {
-  {3.5, 3.5},
-  10,
-  5,
-  { 255, 161, 0, 255 },
-};
-LightSource light_source1 = {
-  {10.5, 11.5},
-  20,
-  13,
-  { 0, 158, 47, 255 },
-};
+
+float natural_light = 1.f;
 
 float *z_buffer = NULL;
 pthread_t *threads = NULL;
@@ -52,13 +41,13 @@ DrawSectionArgs *thread_args = NULL;
 
 LightSource light_sources[5] = {0};
 
-bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
-  Vector2 ray_dir = Vector2Normalize(Vector2Subtract(end, start));
-  end = Vector2Add(end, Vector2Scale(ray_dir, -0.0001f));
-  Vector2 map_pos = (Vector2){(int)start.x, (int)start.y};
-  Vector2 end_map_pos = (Vector2){(int)end.x, (int)end.y};
-  float p_percentage_x = start.x - map_pos.x;
-  float p_percentage_y = start.y - map_pos.y;
+bool has_direct_path(Map *map, Vector2 *start, Vector2 *end) {
+  Vector2 ray_dir = Vector2Normalize(Vector2Subtract(*end, *start));
+  *end = Vector2Add(*end, Vector2Scale(ray_dir, -0.0001f));
+  Vector2 map_pos = (Vector2){(int)start->x, (int)start->y};
+  Vector2 end_map_pos = (Vector2){(int)end->x, (int)end->y};
+  float p_percentage_x = start->x - map_pos.x;
+  float p_percentage_y = start->y - map_pos.y;
   int step_x;
   int step_y;
   bool hit = false;
@@ -94,7 +83,7 @@ bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
     }
 
     MapTile *tile;
-    GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, map_pos);
+    GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, &map_pos);
     switch (tile->type) {
       /* case TILE_TYPE_THIN_WALL: */
       /*   break; */
@@ -108,14 +97,14 @@ bool hasDirectPath(Map *map, Vector2 start, Vector2 end) {
   return true;
 }
 
-Color get_point_light_value(Vector2 position, Map *map) {
+Color get_point_light_value(Vector2 *position, Map *map) {
   float max_factor = -1;
   Color tint = WHITE;
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 0; ++i) {
     LightSource light_source = light_sources[i];
-    float light_source_distance = Vector2Length(Vector2Subtract(position, light_source.position));
+    float light_source_distance = Vector2Length(Vector2Subtract(*position, light_source.position));
     if (light_source_distance > light_source.cutoff) continue;
-    if (!hasDirectPath(map, light_source.position, position)) continue;
+    if (!has_direct_path(map, &light_source.position, position)) continue;
     float factor = -light_source_distance / light_source.intensity;
     if (factor > max_factor) {
       max_factor = factor;
@@ -134,8 +123,6 @@ Color get_point_light_value(Vector2 position, Map *map) {
 }
 
 void init_renderer(Renderer *renderer) {
-  light_sources[0] = light_source5;
-  light_sources[1] = light_source1;
   render_thread_count = get_nprocs();
   /* render_thread_count = 1; */
   threads = malloc(render_thread_count * sizeof(pthread_t));
@@ -185,9 +172,9 @@ void set_render_resolution(Renderer *renderer, unsigned int width, unsigned int 
   }
 }
 
-inline void draw_pixel(Renderer *renderer, int x, int y, Color color, Color tint) {
-  color = ColorTint(color, tint);
-  renderer->screen_buffer[y + x * renderer->render_height] = color;
+inline void draw_pixel(Renderer *renderer, int x, int y, Color *color, Color *tint) {
+  *color = ColorTint(*color, *tint);
+  renderer->screen_buffer[y + x * renderer->render_height] = *color;
 }
 
 void *draw_section(void *void_args) {
@@ -242,10 +229,30 @@ void *draw_section(void *void_args) {
         side = SIDE_LEFT;
       }
 
-      GET_TILE_AT_POINT_DEFAULT_WALL(wall_tile, map, map_pos);
+      GET_TILE_AT_POINT_DEFAULT_WALL(wall_tile, map, &map_pos);
       switch (wall_tile->type) {
-        /* case TILE_TYPE_THIN_WALL: */
-        /*   break; */
+      case TILE_TYPE_PLANE_WALL: {
+        Vector2 start = Vector2Add(((PlaneWallArgs*)wall_tile->args)->start, map_pos);
+        Vector2 end = Vector2Add(((PlaneWallArgs*)wall_tile->args)->end, map_pos);
+        Vector2 intersection;
+        if (CheckCollisionLines(player->position, Vector2Add(player->position, Vector2Scale(ray_dir, 1000)), start, end, &intersection)) {
+          hit = true;
+          side = fabsf(start.y - end.y) < 0.4f;
+          if (side == SIDE_RIGHT) {
+            if (ray_dir.x < 0) {
+              side_dist.x += delta_dist.x * (1 - (intersection.x - (int)intersection.x));
+            } else {
+              side_dist.x += delta_dist.x * (intersection.x - (int)intersection.x);
+            }
+          } else {
+            if (ray_dir.y < 0) {
+              side_dist.y += delta_dist.y * (1 - (intersection.y - (int)intersection.y));
+            } else {
+              side_dist.y += delta_dist.y * (intersection.y - (int)intersection.y);
+            }
+          }
+        }
+      } break;
       case TILE_TYPE_WALL:
         hit = true;
         break;
@@ -280,18 +287,18 @@ void *draw_section(void *void_args) {
     wall_x -= (int)wall_x;
     TexturePixels wall_texture = get_texture(&renderer->textures, wall_tile->wall_id);
     int tex_x = wall_x * wall_texture.texture.width;
-    if ((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT))
+    if (((ray_dir.x < 0 && side == SIDE_RIGHT) || (ray_dir.y > 0 && side == SIDE_LEFT)) && wall_tile->type != TILE_TYPE_PLANE_WALL)
       tex_x = wall_texture.texture.width - tex_x - 1;
 
     float center = renderer->render_height * player->plane_height;
     float height = renderer->render_height * (1 - player->height);
     for (int y = 0; y < wall_top; ++y) {
-      float ray_length =  height / (center -  y);
+      float ray_length =  height / (center - y);
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile *tile;
-      GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, texture_pos);
-      Color tint = get_point_light_value(texture_pos, map);
+      GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, &texture_pos);
+      Color tint = get_point_light_value(&texture_pos, map);
 
       TexturePixels ceiling_texture = get_texture(&renderer->textures, tile->ceiling_id);
       texture_pos.x -= (int)texture_pos.x;
@@ -299,18 +306,19 @@ void *draw_section(void *void_args) {
 
       int ceiling_tex_x = texture_pos.x * (ceiling_texture.texture.width - 1);
       int ceiling_tex_y = texture_pos.y * (ceiling_texture.texture.height - 1);
-
-      draw_pixel(renderer, x, y, get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y), tint);
+      Color color = get_texture_pixel(ceiling_texture, ceiling_tex_x, ceiling_tex_y);
+      draw_pixel(renderer, x, y, &color, &tint);
     }
 
     int y_start = wall_top < 0 ? 0 : wall_top;
     int y_end = wall_bot > renderer->render_height ? renderer->render_height : wall_bot;
-    Color tint = get_point_light_value(wall_stripe_position, map);
+    Color tint = get_point_light_value(&wall_stripe_position, map);
     tint = ColorBrightness(tint, -0.2f * side);
     for (int y = y_start; y <= y_end; ++y) {
       float y_percentage = Clamp((y - (int)wall_top) / line_height, 0, 1.0);
       int tex_y = y_percentage * (wall_texture.texture.height - 1);
-      draw_pixel(renderer, x, y, get_texture_pixel(wall_texture, tex_x, tex_y), tint);
+      Color color = get_texture_pixel(wall_texture, tex_x, tex_y);
+      draw_pixel(renderer, x, y, &color, &tint);
     }
 
     height = renderer->render_height * player->height;
@@ -319,8 +327,8 @@ void *draw_section(void *void_args) {
       Vector2 texture_pos =
         Vector2Add(player->position, Vector2Scale(ray_dir, ray_length));
       MapTile *tile;
-      GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, texture_pos);
-      Color tint = get_point_light_value(texture_pos, map);
+      GET_TILE_AT_POINT_DEFAULT_WALL(tile, map, &texture_pos);
+      Color tint = get_point_light_value(&texture_pos, map);
 
       TexturePixels floor_texture = get_texture(&renderer->textures, tile->floor_id);
       texture_pos.x -= (int)texture_pos.x;
@@ -329,7 +337,8 @@ void *draw_section(void *void_args) {
       int floor_tex_x = texture_pos.x * (floor_texture.texture.width - 1);
       int floor_tex_y = texture_pos.y * (floor_texture.texture.height - 1);
 
-      draw_pixel(renderer, x, y, get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y), tint);
+      Color color = get_texture_pixel(floor_texture, floor_tex_x, floor_tex_y);
+      draw_pixel(renderer, x, y, &color, &tint);
     }
   }
   pthread_exit(NULL);
@@ -337,14 +346,13 @@ void *draw_section(void *void_args) {
 }
 
 void draw_world(Renderer *renderer, Player *player, Map *map) {
-  int offset = renderer->render_width / render_thread_count;
-  int leftover = renderer->render_width - (offset * render_thread_count);
+  div_t offset = div(renderer->render_width, render_thread_count);
   for (int i = 0; i < render_thread_count; ++i) {
     thread_args[i].renderer = renderer;
     thread_args[i].map = map;
     thread_args[i].player = player;
-    thread_args[i].start = offset * i;
-    thread_args[i].end = offset * (i + 1) + (leftover > 0 && i == render_thread_count - 1) * leftover;
+    thread_args[i].start = offset.quot * i;
+    thread_args[i].end = offset.quot * (i + 1) + offset.rem * (i == render_thread_count - 1);
     pthread_create(threads + i, NULL, draw_section, thread_args + i);
   }
   for (int i = 0; i < render_thread_count; ++i)
@@ -395,7 +403,7 @@ void draw_sprites(Renderer *renderer, Player *player) {
     if(draw_end_x >= renderer->render_width) draw_end_x = renderer->render_width - 1;
     for(int stripe = draw_start_x; stripe < draw_end_x; stripe++)
       {
-        int tex_x = (256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * sprite_texture.texture.width / sprite_width) / 256;
+        int tex_x = (256.f * (stripe - (-sprite_width / 2.f + sprite_screen_x)) * sprite_texture.texture.width / sprite_width) / 256.f;
         if (transform_y > 0 && stripe > 0 && stripe < renderer->render_width &&
             transform_y < z_buffer[stripe]) {
 
@@ -409,8 +417,6 @@ void draw_sprites(Renderer *renderer, Player *player) {
 }
 
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
-  light_sources[0].intensity = 3 + (random() % 10) / 20.f;
-  light_sources[1].intensity = (sin(GetTime()) + 1) * 10;
   BeginTextureMode(renderer->render_texture);
   ClearBackground(BLACK);
   draw_skybox(renderer, player, map);

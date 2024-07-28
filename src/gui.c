@@ -4,9 +4,44 @@
 #include <raymath.h>
 
 GUISettings gui_settings = {0};
+bool world_gui_mode = false;
+Camera2D world_camera;
+bool input_captured = false;
+
+bool GUIIsMouseButtonPressed(int button) {
+  return !input_captured && IsMouseButtonPressed(button);
+}
+
+bool GUIIsMouseButtonDown(int button) {
+  return !input_captured && IsMouseButtonDown(button);
+}
+
+bool GUIIsMouseButtonReleased(int button) {
+  return !input_captured && IsMouseButtonReleased(button);
+}
+
+bool GUIIsMouseButtonUp(int button) {
+  return !input_captured && IsMouseButtonUp(button);
+}
+
+void BeginWorldGuiMode(Camera2D camera) {
+  world_gui_mode = true;
+  world_camera = camera;
+}
+
+void EndWorldGuiMode(void) {
+  world_gui_mode = false;
+}
+
+void EndGuiFrame(void) {
+  if (input_captured && !IsMouseButtonDown(0))
+    input_captured = false;
+}
 
 bool is_mouse_hovering(Rectangle rec) {
   Vector2 mouse_pos = GetMousePosition();
+  if (world_gui_mode)
+    mouse_pos = GetScreenToWorld2D(mouse_pos, world_camera);
   return mouse_pos.x >= rec.x &&
          mouse_pos.x <= rec.x + rec.width &&
          mouse_pos.y >= rec.y &&
@@ -14,12 +49,15 @@ bool is_mouse_hovering(Rectangle rec) {
 }
 
 bool is_button_clicked(Rectangle rec) {
-  return is_mouse_hovering(rec) && IsMouseButtonPressed(0);
+  bool result = is_mouse_hovering(rec) && GUIIsMouseButtonDown(0);
+  if (result)
+    input_captured = true;
+  return result;
 }
 
 bool GUIButton(Rectangle rec, const char *label) {
   Color background = gui_settings.main_background;
-  if (is_mouse_hovering(rec) && !IsMouseButtonDown(0))
+  if (is_mouse_hovering(rec) && !GUIIsMouseButtonDown(0))
     background = ColorBrightness(background, -0.1f);
   DrawRectangleRec(rec, background);
   DrawCenteredText(rec, label);

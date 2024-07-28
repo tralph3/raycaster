@@ -13,7 +13,7 @@ typedef struct {
     TexturePixels *items;
 } TextureArr;
 
-typedef unsigned char TextureID;
+typedef unsigned short TextureID;
 
 typedef struct {
     TextureID texture_id;

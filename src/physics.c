@@ -18,15 +18,15 @@ bool is_square_colliding(Vector2 square_position, float square_size, Map *map) {
     Vector2AddValue(square_position, half_square_size);
 
   MapTile *top_left_tile;
-  GET_TILE_AT_POINT_DEFAULT_WALL(top_left_tile, map, top_left_corner);
+  GET_TILE_AT_POINT_DEFAULT_WALL(top_left_tile, map, &top_left_corner);
   MapTile *top_right_tile;
-  GET_TILE_AT_POINT_DEFAULT_WALL(top_right_tile, map, top_right_corner);
+  GET_TILE_AT_POINT_DEFAULT_WALL(top_right_tile, map, &top_right_corner);
   MapTile *bottom_left_tile;
-  GET_TILE_AT_POINT_DEFAULT_WALL(bottom_left_tile, map, bottom_left_corner);
+  GET_TILE_AT_POINT_DEFAULT_WALL(bottom_left_tile, map, &bottom_left_corner);
   MapTile *bottom_right_tile;
-  GET_TILE_AT_POINT_DEFAULT_WALL(bottom_right_tile, map, bottom_right_corner);
+  GET_TILE_AT_POINT_DEFAULT_WALL(bottom_right_tile, map, &bottom_right_corner);
 
-  return top_left_tile->type == TILE_TYPE_WALL || top_right_tile->type == TILE_TYPE_WALL || bottom_left_tile->type == TILE_TYPE_WALL || bottom_right_tile->type == TILE_TYPE_WALL;
+  return top_left_tile->type != TILE_TYPE_EMPTY || top_right_tile->type != TILE_TYPE_EMPTY || bottom_left_tile->type != TILE_TYPE_EMPTY || bottom_right_tile->type != TILE_TYPE_EMPTY;
 }
 
 void check_collission(Player *player, Map *map) {
@@ -39,4 +39,19 @@ void check_collission(Player *player, Map *map) {
   if (is_square_colliding(new_y_position, player->size, map)) {
     player->position.y = player->old_position.y;
   }
+}
+
+Vector2 get_line_intersection_point(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4) {
+  float A1 = p2.y - p1.y;
+  float B1 = p1.x - p2.x;
+  float C1 = A1 * p1.x + B1 * p1.y;
+  float A2 = p4.y - p3.y;
+  float B2 = p3.x - p4.x;
+  float C2 = A2 * p3.x + B2 * p3.y;
+  float denominator = A1 * B2 - A2 * B1;
+
+  return (Vector2){
+    .x = (B2 * C1 - B1 * C2) / denominator,
+    .y = (A1 * C2 - A2 * C1) / denominator
+  };
 }

@@ -38,8 +38,7 @@ Game create_new_game(void) {
   state_test_map.next_state = &state_editor;
 
   Map map = load_map("./assets/maps/test.map");
-  gui_settings.font = GetFontDefault();
-  gui_settings.main_background = RED;
+
   Renderer renderer = {0};
   init_renderer(&renderer);
   Game game = {
@@ -48,6 +47,9 @@ Game create_new_game(void) {
     .player = create_new_player(map.player_start_position, PLAYER_DIRECTION_RIGHT),
     .renderer = renderer,
   };
+
+  gui_settings.font = GetFontDefault();
+  gui_settings.main_background = LIME;
   return game;
 }
 
@@ -72,6 +74,8 @@ void game_run(Game *game) {
       game->current_state.setup(game);
     }
   }
+
+  CloseWindow();
 }
 
 void state_play_setup(Game *game) {

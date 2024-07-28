@@ -28,7 +28,7 @@ TextureArr load_all_textures(void) {
     da_append(&texture_arr, load_texture("./assets/textures/warning_tape.png"));
     da_append(&texture_arr, load_texture("./assets/textures/floor_tile.png"));
     da_append(&texture_arr, load_texture("./assets/textures/redbrick.png"));
-    da_append(&texture_arr, load_texture("./assets/textures/eagle.png"));
+    da_append(&texture_arr, load_texture("./assets/textures/grass.png"));
     da_append(&texture_arr, load_texture("./assets/textures/purplestone.png"));
     da_append(&texture_arr, load_texture("./assets/textures/greystone.png"));
     da_append(&texture_arr, load_texture("./assets/textures/bluestone.png"));
@@ -45,7 +45,7 @@ TextureArr load_all_textures(void) {
 }
 
 inline TexturePixels get_texture(TextureArr *texture_arr, TextureID id) {
-  return texture_arr->items[(int)Clamp(id, 0, texture_arr->count - 1)];
+  return texture_arr->items[(short)Clamp(id, 0, texture_arr->count - 1)];
 }
 
 inline Color get_texture_pixel(TexturePixels pixels, int x, int y) {
