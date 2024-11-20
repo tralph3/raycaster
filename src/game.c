@@ -38,6 +38,7 @@ Game create_new_game(void) {
   state_test_map.next_state = &state_editor;
 
   Map map = load_map("./assets/maps/test.map");
+  map.skybox = 16;
 
   Renderer renderer = {0};
   init_renderer(&renderer);
@@ -97,7 +98,7 @@ void state_editor_setup(Game *game) {
 
 void state_editor_loop(Game *game) {
   draw_editor_interface(&game->renderer, &game->editor);
-  editor_input(&game->editor);
+
   if (IsKeyPressed(KEY_T))
     game->current_state.change_state = true;
 }

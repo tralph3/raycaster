@@ -1,19 +1,17 @@
 ;;; -*- lisp-data -*-
-((:name "Debug"
-        :command "make debug && gdb --tui ./build/debug"
-        :type "eat")
- (:name "Compile and run"
-        :command "make && ./build/main"
-        :type "compile"
-        :workdir nil
-        :environment nil)
- (:name "Run"
-        :command "./build/main"
-        :type "compile"
-        :workdir nil
-        :environment nil)
+((:name "Compile and run"
+        :command ("make"
+                  "./build/main")
+        :type "compile")
  (:name "Compile"
         :command "make"
+        :type "compile")
+ (:name "Debug"
+        :command ("make debug"
+                  "gdb --tui ./build/debug")
+        :type "eat")
+ (:name "Run"
+        :command "./build/main"
         :type "compile"
         :workdir nil
         :environment nil))

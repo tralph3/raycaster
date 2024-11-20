@@ -139,9 +139,10 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
   EndMode2D();
   draw_current_tile(renderer, editor);
   draw_gui(editor, renderer);
-  DrawFPS(0,0);
-  EndDrawing();
+  DrawFPS(0, 0);
+  editor_input(editor);
   EndGuiFrame();
+  EndDrawing();
 }
 
 void place_tile(Vector2 position, MapEditor *editor) {
@@ -216,7 +217,7 @@ void editor_input(MapEditor *editor) {
   Vector2 mouse_delta = GetMouseDelta();
   Camera2D *camera = &editor->camera;
 
-  if (GUIIsMouseButtonDown(0)) {
+  if (GUIIsMouseButtonPressed(0)) {
     switch (editor->current_tool) {
     case EDITOR_TOOL_PENCIL:
       editor_tool_pencil(editor);

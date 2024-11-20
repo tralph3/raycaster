@@ -33,13 +33,34 @@ typedef struct {
   Color tint;
 } LightSource;
 
-float natural_light = 1.f;
+float natural_light = 0.2f;
 
 float *z_buffer = NULL;
 pthread_t *threads = NULL;
 DrawSectionArgs *thread_args = NULL;
 
 LightSource light_sources[5] = {0};
+
+LightSource ls1 = {
+    .position = {3.5, 3.5},
+    .cutoff = 100,
+    .tint = ORANGE,
+    .intensity = 20,
+};
+
+LightSource ls2 = {
+    .position = {5.5, 24.5},
+    .cutoff = 100,
+    .tint = LIME,
+    .intensity = 10,
+};
+
+LightSource ls3 = {
+    .position = {30.5, 19.5},
+    .cutoff = 100,
+    .tint = RED,
+    .intensity = 10,
+};
 
 bool has_direct_path(Map *map, Vector2 *start, Vector2 *end) {
   Vector2 ray_dir = Vector2Normalize(Vector2Subtract(*end, *start));
@@ -100,7 +121,7 @@ bool has_direct_path(Map *map, Vector2 *start, Vector2 *end) {
 Color get_point_light_value(Vector2 *position, Map *map) {
   float max_factor = -1;
   Color tint = WHITE;
-  for (int i = 0; i < 0; ++i) {
+  for (int i = 0; i < 3; ++i) {
     LightSource light_source = light_sources[i];
     float light_source_distance = Vector2Length(Vector2Subtract(*position, light_source.position));
     if (light_source_distance > light_source.cutoff) continue;
@@ -418,6 +439,12 @@ void draw_sprites(Renderer *renderer, Player *player) {
 }
 
 void draw_everything(Renderer *renderer, Player *player, Map *map) {
+  light_sources[0] = ls1;
+  light_sources[1] = ls2;
+  light_sources[2] = ls3;
+  ls1.intensity = (sin(GetTime()) + 1) * 10;
+  ls2.intensity = (cos(GetTime()) + 1) * 20;
+  ls3.intensity = (sin(GetTime()) + 1) * 50;
   BeginTextureMode(renderer->render_texture);
   ClearBackground(BLACK);
   draw_skybox(renderer, player, map);

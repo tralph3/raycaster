@@ -34,8 +34,7 @@ void EndWorldGuiMode(void) {
 }
 
 void EndGuiFrame(void) {
-  if (input_captured && !IsMouseButtonDown(0))
-    input_captured = false;
+  input_captured = false;
 }
 
 bool is_mouse_hovering(Rectangle rec) {
@@ -49,7 +48,7 @@ bool is_mouse_hovering(Rectangle rec) {
 }
 
 bool is_button_clicked(Rectangle rec) {
-  bool result = is_mouse_hovering(rec) && GUIIsMouseButtonDown(0);
+  bool result = is_mouse_hovering(rec) && GUIIsMouseButtonPressed(0);
   if (result)
     input_captured = true;
   return result;
