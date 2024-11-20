@@ -38,9 +38,9 @@ fun with your new heater.
 
 ** Building
 
-Simply run make. Do not that this engine makes use of =pthread.h=,
-which is Linux only. And as such, the engine is Linux only. A Windows
-port would be trivial... but meh.
+Simply run make. Do note that this engine makes use of =pthread.h=,
+which is Linux only. And as such, the engine is Linux only. Windows
+support would be trivial... but meh.
 
 #+begin_src sh
   make
