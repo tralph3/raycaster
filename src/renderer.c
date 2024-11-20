@@ -134,6 +134,7 @@ void init_renderer(Renderer *renderer) {
 
   set_render_resolution(renderer, GetMonitorWidth(current_monitor), GetMonitorHeight(current_monitor));
   set_render_resolution(renderer, 640, 480);
+  SetTargetFPS(60);
   TextureArr textures = load_all_textures();
   renderer->textures = textures;
   SpriteArr sprites = {0};
