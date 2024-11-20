@@ -1,0 +1,87 @@
+* Raycaster Engine
+
+This is a graphics engine which uses the raycasting method to draw the
+world.
+
+The world is defined in a 2D matrix. Then, rays are cast from the
+player's point of view, and the DDA (Digital Differential Analyzer)
+algorithm is used to intercept the cells and check for wall
+collissions, which then lets me draw the world line by line.
+
+A similar method is used for rendering the floor and the ceiling.
+
+The engine has no hardware acceleration at all. Everything is
+processed by the CPU. As such, your fans will spin very rapidly when
+this thing is running. It also will use all of your CPUs cores to
+speed up rendering, as it would be unbearably slow without it. So have
+fun with your new heater.
+
+** Features
+
+- A fake 3D world drawn from a 2D matrix.
+- Walls, ceiling and floors can have different textures, per tile.
+- Use arbitrary textures, of any size. They'll get squashed to a
+  square shape.
+- A tacked on dynamic lighting system with shadows and everything (one
+  of the main reasons for the poor performance).
+- Oh, did I mention poor performance?
+- A somewhat working level editor (works in real time!) which even
+  lets you save your levels!
+- A crappy widget system which only has buttons, spinners, and labels.
+- Two hand drawn textures, rest were stolen from various places,
+  mostly Wolf3D.
+- Look up/down and crouch/stretch your neck? In short, player has
+  variable height.
+- Angled walls, can be at any angle... ANY. That's a lot of angles.
+- A wonky skybox.
+- Billboard style sprites.
+
+** Building
+
+Simply run make. Do not that this engine makes use of =pthread.h=,
+which is Linux only. And as such, the engine is Linux only. A Windows
+port would be trivial... but meh.
+
+#+begin_src sh
+  make
+#+end_src
+
+The executable will be in the build folder:
+
+#+begin_src sh
+  ./build/main
+#+end_src
+
+Open it from the root of the project, as it depends on that path to
+find the levels and the textures. Speaking of... you won't have any,
+since they are stored in Git LFS. So, install git lfs, then run:
+
+#+begin_src sh
+  git lfs install
+  git lfs pull
+#+end_src
+
+** Controls
+
+When you launch the engine you'll be in the level editor.
+
+*** Level Editor
+
+- =T=: Toggle between editor and game.
+- =Left click=: Place tile.
+- =Middle click=: Pan the view.
+- =Right click=: Delete tile.
+- =1-9=: Switch textures. Not all of them are accesible. Oh well.
+- GUI controls on the bottom left. You can change the size of the map
+  and change the layer you're currently editing.
+- When you click on save level the level will be saved on
+  =./assets/maps/test.map=. There's no confirmation.
+
+*** Game
+
+- =WASD=: Move.
+- =T=: Go into level editor.
+- =Ctrl=: Crouch.
+- =Left Alt=: Stetch neck.
+- =Left Shift=: Run.
+- Use mouse to look around.
