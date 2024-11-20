@@ -1,5 +1,11 @@
 * Raycaster Engine
 
+#+HTML: <img src="https://github.com/user-attachments/assets/c079869b-0b1a-46c5-a06e-e021b0ef389c" width="100%"/>
+
+#+HTML: <img src="https://github.com/user-attachments/assets/c31612cd-e719-4d6c-b0de-6b64cea6f15e" width="100%"/>
+
+#+HTML: <img src="https://github.com/user-attachments/assets/0f111f37-84ab-4834-af07-121e23581947" width="100%"/>
+
 This is a graphics engine which uses the raycasting method to draw the
 world.
 
