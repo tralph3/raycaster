@@ -18,10 +18,10 @@ typedef struct {
 } Player;
 
 typedef enum {
-  PLAYER_DIRECTION_LEFT = 1,
-  PLAYER_DIRECTION_RIGHT,
-  PLAYER_DIRECTION_UP,
-  PLAYER_DIRECTION_DOWN,
+    PLAYER_DIRECTION_LEFT = 1,
+    PLAYER_DIRECTION_RIGHT,
+    PLAYER_DIRECTION_UP,
+    PLAYER_DIRECTION_DOWN,
 } PlayerDirection;
 
 void player_move(Player*, Vector2, float);

@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 typedef struct {
-  Font font;
-  Color main_background;
+    Font font;
+    Color main_background;
 } GUISettings;
 
 extern GUISettings gui_settings;

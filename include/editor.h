@@ -8,22 +8,22 @@
 #define TILE_SIZE 40
 
 typedef enum {
-  EDITOR_TOOL_PENCIL,
-  EDITOR_TOOL_RECTANGLE,
+    EDITOR_TOOL_PENCIL,
+    EDITOR_TOOL_RECTANGLE,
 } EditorTool;
 
 typedef enum {
-  LAYER_FLOOR = 0,
-  LAYER_WALL,
-  LAYER_CEILING,
+    LAYER_FLOOR = 0,
+    LAYER_WALL,
+    LAYER_CEILING,
 } Layer;
 
 typedef struct MapEditor {
-  int current_tile;
-  Camera2D camera;
-  Map *map;
-  int layer;
-  EditorTool current_tool;
+    int current_tile;
+    Camera2D camera;
+    Map *map;
+    int layer;
+    EditorTool current_tool;
 } MapEditor;
 
 void draw_map_tile(MapEditor *, Renderer*, Vector2, MapTile*);

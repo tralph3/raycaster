@@ -3,8 +3,8 @@
 #include <raylib.h>
 
 typedef struct {
-  Texture2D texture;
-  Color *pixels;
+    Texture2D texture;
+    Color *pixels;
 } TexturePixels;
 
 typedef struct {

@@ -12,20 +12,20 @@ typedef struct Game Game;
 typedef struct GameState GameState;
 
 struct GameState {
-  void (*loop)(Game *);
-  void (*setup)(Game *);
-  bool change_state;
-  GameState *next_state;
+    void (*loop)(Game *);
+    void (*setup)(Game *);
+    bool change_state;
+    GameState *next_state;
 };
 
 struct Game {
-  Map map;
-  GameState current_state;
-  Player player;
-  TextureArr textures;
-  SpriteArr sprites;
-  Renderer renderer;
-  MapEditor editor;
+    Map map;
+    GameState current_state;
+    Player player;
+    TextureArr textures;
+    SpriteArr sprites;
+    Renderer renderer;
+    MapEditor editor;
 };
 
 void game_run(Game *);

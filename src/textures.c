@@ -5,21 +5,21 @@
 #include "dynarray.h"
 
 TexturePixels load_texture(const char* path) {
-  Image image = LoadImage(path);
-  Color *original_colors = LoadImageColors(image);
-  Color *pixels = malloc(image.width * image.height * sizeof(Color));
-  for (int y = 0; y < image.height; ++y) {
-    for (int x = 0; x < image.width; ++x) {
-      pixels[y + x * image.height] = original_colors[x + y * image.width];
+    Image image = LoadImage(path);
+    Color *original_colors = LoadImageColors(image);
+    Color *pixels = malloc(image.width * image.height * sizeof(Color));
+    for (int y = 0; y < image.height; ++y) {
+        for (int x = 0; x < image.width; ++x) {
+            pixels[y + x * image.height] = original_colors[x + y * image.width];
+        }
     }
-  }
-  free(original_colors);
-  TexturePixels texture_pixels = {
-    .pixels = pixels,
-    .texture = LoadTextureFromImage(image),
-  };
-  UnloadImage(image);
-  return texture_pixels;
+    free(original_colors);
+    TexturePixels texture_pixels = {
+        .pixels = pixels,
+        .texture = LoadTextureFromImage(image),
+    };
+    UnloadImage(image);
+    return texture_pixels;
 }
 
 TextureArr load_all_textures(void) {
@@ -45,9 +45,9 @@ TextureArr load_all_textures(void) {
 }
 
 inline TexturePixels get_texture(TextureArr *texture_arr, TextureID id) {
-  return texture_arr->items[(short)Clamp(id, 0, texture_arr->count - 1)];
+    return texture_arr->items[(short)Clamp(id, 0, texture_arr->count - 1)];
 }
 
 inline Color get_texture_pixel(TexturePixels pixels, int x, int y) {
-  return pixels.pixels[y + x * pixels.texture.height];
+    return pixels.pixels[y + x * pixels.texture.height];
 }

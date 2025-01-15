@@ -8,20 +8,20 @@
 #include "textures.h"
 
 typedef struct {
-  int min;
-  int max;
+    int min;
+    int max;
 } RayPair;
 
 typedef struct {
-  int render_width;
-  int render_height;
-  int screen_width;
-  int screen_height;
-  TextureArr textures;
-  SpriteArr sprites;
-  Texture2D buffer_texture;
-  Color *screen_buffer;
-  RenderTexture2D render_texture;
+    int render_width;
+    int render_height;
+    int screen_width;
+    int screen_height;
+    TextureArr textures;
+    SpriteArr sprites;
+    Texture2D buffer_texture;
+    Color *screen_buffer;
+    RenderTexture2D render_texture;
 } Renderer;
 
 void sort_sprites(Player*, SpriteArr*);

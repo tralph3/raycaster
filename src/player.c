@@ -22,14 +22,14 @@ void player_move(Player *player, Vector2 direction, float multiplier) {
 }
 
 void player_pitch(Player *player, float amount) {
-  player->plane_height = Clamp(player->plane_height + amount, 0, 1);
+    player->plane_height = Clamp(player->plane_height + amount, 0, 1);
 }
 
 void player_rotate(Player *player, float amount) {
     player->direction = Vector2Rotate(
         player->direction, player->rotation_speed * amount);
     player->camera_plane =
-      Vector2Rotate(player->camera_plane, player->rotation_speed * amount);
+        Vector2Rotate(player->camera_plane, player->rotation_speed * amount);
 }
 
 Player create_new_player(Vector2 initial_position, PlayerDirection initial_direction) {
@@ -48,32 +48,32 @@ Player create_new_player(Vector2 initial_position, PlayerDirection initial_direc
 
     switch (initial_direction) {
     case PLAYER_DIRECTION_UP:
-      direction.x = 0;
-      direction.y = -1;
-      camera_plane.x = 1;
-      camera_plane.y = 0;
-      break;
+        direction.x = 0;
+        direction.y = -1;
+        camera_plane.x = 1;
+        camera_plane.y = 0;
+        break;
     case PLAYER_DIRECTION_DOWN:
-      direction.x = 0;
-      direction.y = 1;
-      camera_plane.x = -1;
-      camera_plane.y = 0;
-      break;
+        direction.x = 0;
+        direction.y = 1;
+        camera_plane.x = -1;
+        camera_plane.y = 0;
+        break;
     case PLAYER_DIRECTION_LEFT:
-      direction.x = -1;
-      direction.y = 0;
-      camera_plane.x = 0;
-      camera_plane.y = -1;
-      break;
+        direction.x = -1;
+        direction.y = 0;
+        camera_plane.x = 0;
+        camera_plane.y = -1;
+        break;
     case PLAYER_DIRECTION_RIGHT:
-      direction.x = 1;
-      direction.y = 0;
-      camera_plane.x = 0;
-      camera_plane.y = 1;
-      break;
+        direction.x = 1;
+        direction.y = 0;
+        camera_plane.x = 0;
+        camera_plane.y = 1;
+        break;
     default:
-      fprintf(stderr, "ERRROR: Unknown direction '%d'\n", initial_direction);
-      exit(1);
+        fprintf(stderr, "ERRROR: Unknown direction '%d'\n", initial_direction);
+        exit(1);
     }
     player.direction = direction;
     player.camera_plane = camera_plane;
