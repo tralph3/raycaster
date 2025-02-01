@@ -10,11 +10,11 @@ typedef struct {
     Vector2 direction;
     Vector2 camera_plane;
     Vector2 velocity;
-    float plane_height;
+    int plane_size;
     float speed;
     float size;
     float rotation_speed;
-    float height;
+    int height;
 } Player;
 
 typedef enum {

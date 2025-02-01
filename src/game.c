@@ -3,7 +3,6 @@
 #include "map.h"
 #include "renderer.h"
 #include "player.h"
-#include "textures.h"
 #include "input.h"
 #include "physics.h"
 #include "editor.h"
@@ -18,13 +17,12 @@ GameState state_test_map = {0};
 Game create_new_game(void) {
     SetConfigFlags(
         FLAG_FULLSCREEN_MODE |
-        FLAG_WINDOW_RESIZABLE |
-        /* FLAG_VSYNC_HINT | */
-        FLAG_MSAA_4X_HINT
+        FLAG_WINDOW_RESIZABLE
         );
 
     InitWindow(0, 0, "Raycaster");
     InitAudioDevice();
+
     state_play.loop = state_play_loop;
     state_play.setup = state_play_setup;
     state_play.next_state = NULL;
@@ -37,14 +35,38 @@ Game create_new_game(void) {
     state_test_map.setup = state_test_map_setup;
     state_test_map.next_state = &state_editor;
 
-    Map map = load_map("./assets/maps/test.map");
+    /* Map map = load_map("./assets/maps/test.map"); */
+    Map map = {0};
+    map.width = 4;
+    map.size = 16;
+    map.data = malloc(sizeof(MapTile) * map.size);
+
+    map.data[0]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[1]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[2]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[3]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[4]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[5]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[6]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 16};
+    map.data[7]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 32};
+    map.data[8]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 64};
+    map.data[9]  = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[10] = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[11] = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 10};
+    map.data[12] = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[13] = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[14] = (MapTile){1, 0, 2, TILE_TYPE_EMPTY, NULL, 0};
+    map.data[15] = (MapTile){1, 0, 4, TILE_TYPE_EMPTY, NULL, 0};
+
+    map.player_start_position = (Vector2){0.5, 0.5};
     map.skybox = 16;
 
     Renderer renderer = {0};
     init_renderer(&renderer);
+
     Game game = {
         .map = map,
-        .current_state = state_editor,
+        .current_state = state_test_map,
         .player = create_new_player(map.player_start_position, PLAYER_DIRECTION_RIGHT),
         .renderer = renderer,
     };
@@ -85,7 +107,6 @@ void state_play_setup(Game *game) {
 }
 
 void state_play_loop(Game *game) {
-
     handle_input(&game->player);
     check_collission(&game->player, &game->map);
     draw_everything(&game->renderer, &game->player, &game->map);

@@ -1,13 +1,14 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
+
 #include <raylib.h>
 
-typedef struct {
+typedef struct TexturePixels {
     Texture2D texture;
     Color *pixels;
 } TexturePixels;
 
-typedef struct {
+typedef struct TextureArr {
     int count;
     int capacity;
     TexturePixels *items;
@@ -15,12 +16,12 @@ typedef struct {
 
 typedef unsigned short TextureID;
 
-typedef struct {
+typedef struct Sprite {
     TextureID texture_id;
     Vector2 position;
 } Sprite;
 
-typedef struct {
+typedef struct SpriteArr {
     int count;
     int capacity;
     Sprite *items;

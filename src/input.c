@@ -20,16 +20,16 @@ void handle_input(Player *player) {
         player_move_direction.x += 1;
     if (IsKeyDown(KEY_A))
         player_move_direction.x -= 1;
-    if (IsKeyDown(KEY_LEFT_CONTROL)) {
-        player->height = Lerp(player->height, 0.1, GetFrameTime() * 10);
-        player->speed = 1;
-    }
-    else if (IsKeyDown(KEY_LEFT_ALT))
-        player->height = Lerp(player->height, 0.9, GetFrameTime() * 10);
-    else {
-        player->height = Lerp(player->height, 0.5, GetFrameTime() * 10);
-        player->speed = 2;
-    }
+    /* if (IsKeyDown(KEY_LEFT_CONTROL)) { */
+    /*     player->height = Lerp(player->height, 0.1, GetFrameTime() * 10); */
+    /*     player->speed = 1; */
+    /* } */
+    /* else if (IsKeyDown(KEY_LEFT_ALT)) */
+    /*     player->height = Lerp(player->height, 0.9, GetFrameTime() * 10); */
+    /* else { */
+    /*     player->height = Lerp(player->height, 0.5, GetFrameTime() * 10); */
+    /*     player->speed = 2; */
+    /* } */
     player_move(player, player_move_direction, multiplier);
     player_pitch(player, -mouse_delta.y * 0.001);
     player_rotate(player, mouse_delta.x * mouse_sensitivity);

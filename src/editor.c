@@ -130,7 +130,7 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
     for (unsigned int x = 0; x < map_width; ++x) {
         for (unsigned int y = 0; y < map_height; ++y) {
             Vector2 position = {x, y};
-            MapTile *map_tile = get_tile_at_point(editor->map, &position);
+            MapTile *map_tile = get_tile_at_point(editor->map, position);
             draw_map_tile(editor, renderer, (Vector2){x, y}, map_tile);
         }
     }
@@ -146,8 +146,8 @@ void draw_editor_interface(Renderer *renderer, MapEditor *editor) {
 }
 
 void place_tile(Vector2 position, MapEditor *editor) {
-    if (!is_in_bounds(editor->map, &position)) return;
-    MapTile *tile = get_tile_at_point(editor->map, &position);
+    if (!is_in_bounds(editor->map, position)) return;
+    MapTile *tile = get_tile_at_point(editor->map, position);
     if (editor->layer == LAYER_WALL)
         tile->wall_id = editor->current_tile;
     else if (editor->layer == LAYER_CEILING)
@@ -169,13 +169,13 @@ void editor_tool_pencil(MapEditor *editor) {
 }
 
 void editor_tool_rectangle(MapEditor *editor) {
-    if (GUIIsMouseButtonPressed(0) && !is_in_bounds(editor->map, &rectangle_tool_start_pos)) {
+    if (GUIIsMouseButtonPressed(0) && !is_in_bounds(editor->map, rectangle_tool_start_pos)) {
         Vector2 mouse_pos_in_world = GetScreenToWorld2D(GetMousePosition(), editor->camera);
         Vector2 pointed_tile = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
-        if (is_in_bounds(editor->map, &pointed_tile))
+        if (is_in_bounds(editor->map, pointed_tile))
             rectangle_tool_start_pos = pointed_tile;
     }
-    if (!is_in_bounds(editor->map, &rectangle_tool_start_pos))
+    if (!is_in_bounds(editor->map, rectangle_tool_start_pos))
         return;
 
     if (IsKeyDown(KEY_ESCAPE)) {
@@ -186,7 +186,7 @@ void editor_tool_rectangle(MapEditor *editor) {
     if (GUIIsMouseButtonReleased(0)) {
         Vector2 mouse_pos_in_world = GetScreenToWorld2D(GetMousePosition(), editor->camera);
         Vector2 rectangle_tool_end_pos = {mouse_pos_in_world.x / TILE_SIZE, mouse_pos_in_world.y / TILE_SIZE};
-        if (!is_in_bounds(editor->map, &rectangle_tool_end_pos)) {
+        if (!is_in_bounds(editor->map, rectangle_tool_end_pos)) {
             rectangle_tool_start_pos = (Vector2){-1, -1};
             return;
         }

@@ -22,7 +22,7 @@ void player_move(Player *player, Vector2 direction, float multiplier) {
 }
 
 void player_pitch(Player *player, float amount) {
-    player->plane_height = Clamp(player->plane_height + amount, 0, 1);
+    /* player->plane_center = Clamp(player->plane_center + amount, 0, 1); */
 }
 
 void player_rotate(Player *player, float amount) {
@@ -39,8 +39,8 @@ Player create_new_player(Vector2 initial_position, PlayerDirection initial_direc
         .speed = 2,
         .size = 0.3,
         .rotation_speed = 0.001,
-        .plane_height = 0.5,
-        .height = 0.5,
+        .plane_size = 64,
+        .height = 60,
         .velocity = {0},
     };
     Vector2 direction = {0};

@@ -26,11 +26,11 @@ typedef struct {
 
 void sort_sprites(Player*, SpriteArr*);
 void *draw_section(void*);
-void draw_world(Renderer *, Player *, Map *);
+void draw_world(Renderer *);
 void draw_everything(Renderer *, Player *, Map *);
 void draw_sprites(Renderer *, Player *);
 void init_ray_lengths(Renderer *);
-void draw_pixel(Renderer *, int, int, Color*, Color*);
+void draw_pixel(Renderer *, int, int, Color);
 void init_renderer(Renderer *);
 void set_render_resolution(Renderer *, unsigned int, unsigned int);
 
